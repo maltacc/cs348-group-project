@@ -1,10 +1,16 @@
 # cs348-group-project
-## Setup
+## Setup (Mac/Linux)
 Navigate into `steam-app/server` and `steam-app/web`. Run `npm i` for both folders. 
 
 For the database, ensure you have `mysql` installed (`brew mysql@8.4`).
 
-Run `brew services start mysql` and then run `mysql -uroot < migrations/002_seed.sql`. Create a `.env` file under `steam-app/server` and add the following lines:
+Run `brew services start mysql` and then run 
+```
+mysql -uroot < migrations/001_seed.sql
+mysql -uroot < migrations/002_seed.sql
+```
+
+Create a `.env` file under `steam-app/server` and add the following lines:
 
 ```
 DB_HOST=127.0.0.1
