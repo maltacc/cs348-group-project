@@ -44,3 +44,4 @@ Database changed
 Then, run `npm run dev` in both `steam-app/server` and `steam-app/web`. You should be able to open the webpage and see a basic UI. 
 
 ![](https://i.gyazo.com/5f2050db04be0339518d407c1ab010dc.png)
+
