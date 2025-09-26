@@ -1,10 +1,62 @@
 # cs348-group-project
-## Setup (Mac/Linux)
-Navigate into `steam-app/server` and `steam-app/web`. Run `npm i` for both folders. 
 
-For the database, ensure you have `mysql` installed (`brew mysql@8.4`).
+## Setup
 
-Run `brew services start mysql` and then run 
+### Application Setup
+
+Navigate into `steam-app/server` and `steam-app/web`. Run `npm i` for both folders.
+
+### Database Setup
+
+#### MySQL Installation
+
+For the database, ensure you have `mysql` installed.
+
+**For Mac:**
+
+```bash
+brew mysql@8.4
+```
+
+**For Windows:**
+
+1. **Option A: Official MySQL Installer**
+
+   - Download MySQL Community Server from [MySQL Downloads](https://dev.mysql.com/downloads/mysql/)
+   - Run the installer and follow the setup wizard
+   - During installation:
+     - Choose "Developer Default" setup type
+     - Set root password to empty
+       - if you already set a root password:
+         - pass in -p flag with any mysql commands
+         - in the future .env step, set 'DB_PASSWORD=<your_password>'
+     - Configure MySQL as a Windows service
+   - Add MySQL to your PATH:
+     - Open System Properties → Environment Variables
+     - Add MySQL (e.g. `C:\Program Files\MySQL\MySQL Server 8.4\bin`) to PATH
+
+2. **Option B: Chocolatey**
+   ```cmd
+   choco install mysql --version=8.4
+   ```
+
+#### Starting MySQL Service
+
+**For Mac:**
+Run `brew services start mysql`
+
+**For Windows users:**
+
+```cmd
+# Start MySQL service
+net start mysql84
+
+# Or if installed via Chocolatey:
+net start mysql
+```
+
+Then run
+
 ```
 mysql -uroot < migrations/001_seed.sql
 mysql -uroot < migrations/002_seed.sql
@@ -47,7 +99,6 @@ Database changed
 +--------------+-----------------+------+-----+---------+----------------+
 ```
 
-Then, run `npm run dev` in both `steam-app/server` and `steam-app/web`. You should be able to open the webpage and see a basic UI. 
+Then, run `npm run dev` in both `steam-app/server` and `steam-app/web`. You should be able to open the webpage and see a basic UI.
 
 ![](https://i.gyazo.com/5f2050db04be0339518d407c1ab010dc.png)
-
