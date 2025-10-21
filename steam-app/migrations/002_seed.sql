@@ -2,8 +2,13 @@ use steam;
 
 insert into games (app_id, name, release_date, price, genres, developers, publishers, score, reviews, platforms)
 values
-  (1001, 'fake game 1', '2015-01-01', 9.99, 'Action;Indie', 'Studio A', 'PubCo', 72, null, 'windows;linux'),
-  (1002, 'fake game 2', '2018-06-15', 19.99, 'Puzzle', 'Studio B', 'PubCo', 85, 'mostly positive', 'windows;mac'),
-  (1003, 'fake game 3', '2020-09-20', 0.00, 'RPG', 'Indie Dev', 'Indie Pub', 90, 'overwhelmingly positive', 'windows'),
-  (1004, 'fake game 4', '2021-03-10', 29.99, 'Strategy;Simulation', 'Big Studio', 'Big Pub', 68, null, 'windows;linux;mac'),
-  (1005, 'fake game 5', '2019-12-25', 14.99, 'Horror', 'Spooky Games', 'ScaryPub', 77, 'mixed', 'windows');
+  (570, 'Dota 2', '2013-07-09', 0.00, 'MOBA;Strategy;Action', 'Valve', 'Valve', 83, 'Very Positive', 'windows;mac;linux'),
+  (730, 'Counter-Strike 2', '2023-09-27', 0.00, 'FPS;Action;Tactical', 'Valve', 'Valve', 82, 'Very Positive', 'windows;linux'),
+  (1172470, 'Apex Legends', '2020-11-04', 0.00, 'FPS;Battle Royale;Action', 'Respawn Entertainment', 'Electronic Arts', 78, 'Mostly Positive', 'windows'),
+  (292030, 'The Witcher 3: Wild Hunt', '2015-05-19', 39.99, 'RPG;Open World;Adventure', 'CD PROJEKT RED', 'CD PROJEKT RED', 94, 'Overwhelmingly Positive', 'windows;mac;linux'),
+  (1245620, 'ELDEN RING', '2022-02-25', 59.99, 'RPG;Action;Souls-like;Open World', 'FromSoftware', 'Bandai Namco Entertainment', 90, 'Very Positive', 'windows'),
+  (271590, 'Grand Theft Auto V', '2015-04-14', 29.99, 'Action;Open World;Adventure', 'Rockstar North', 'Rockstar Games', 79, 'Very Positive', 'windows'),
+  (413150, 'Stardew Valley', '2016-02-26', 14.99, 'Simulation;RPG;Indie;Farming', 'ConcernedApe', 'ConcernedApe', 93, 'Overwhelmingly Positive', 'windows;mac;linux'),
+  (1091500, 'Cyberpunk 2077', '2020-12-10', 59.99, 'RPG;Action;Open World;Sci-Fi', 'CD PROJEKT RED', 'CD PROJEKT RED', 71, 'Mostly Positive', 'windows'),
+  (252490, 'Rust', '2018-02-08', 39.99, 'Survival;Multiplayer;Open World', 'Facepunch Studios', 'Facepunch Studios', 69, 'Mixed', 'windows;mac'),
+  (1966720, 'Lethal Company', '2023-10-23', 9.99, 'Horror;Co-op;Indie;Survival', 'Zeekerss', 'Zeekerss', 88, 'Overwhelmingly Positive', 'windows');

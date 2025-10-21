@@ -55,11 +55,10 @@ net start mysql84
 net start mysql
 ```
 
-Then run
+Then run in `steam-app/server`:
 
 ```
-mysql -uroot < migrations/001_seed.sql
-mysql -uroot < migrations/002_seed.sql
+npm run db:setup
 ```
 
 Create a `.env` file under `steam-app/server` and add the following lines:
