@@ -1,4 +1,4 @@
 SELECT name, genres, price
 FROM games
-WHERE name like '%fake game 3%'
+WHERE name like '%counter-strike 2%'
   AND price < 20.00;
