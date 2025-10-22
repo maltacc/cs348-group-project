@@ -100,4 +100,4 @@ Database changed
 
 Then, run `npm run dev` in both `steam-app/server` and `steam-app/web`. You should be able to open the webpage and see a basic UI.
 
-![](https://i.gyazo.com/5f2050db04be0339518d407c1ab010dc.png)
+![](https://media.discordapp.net/attachments/1420115967857660007/1430379936237092935/Screenshot_2025-10-21_at_10.19.09_PM.png?ex=68f9909f&is=68f83f1f&hm=8f4a274a4fddb2c25827782312d1963df7e6a453e0d7c97354c5ab479d5a92f4&=&format=webp&quality=lossless&width=1863&height=856)
