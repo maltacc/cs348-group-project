@@ -53,7 +53,7 @@ router.get('/', async (req, res) => {
 
   const [rows] = await pool.query(
     `
-      select name, price, genres
+      select name, price, genres, score
       from games
       ${whereClause}
       order by id asc
