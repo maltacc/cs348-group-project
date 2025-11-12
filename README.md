@@ -58,7 +58,7 @@ net start mysql
 Then run in `steam-app/server`:
 
 ```
-npm run db:setup
+npm run db:setup:prod
 ```
 
 Create a `.env` file under `steam-app/server` and add the following lines:
@@ -67,35 +67,36 @@ Create a `.env` file under `steam-app/server` and add the following lines:
 DB_HOST=127.0.0.1
 DB_USER=root
 DB_PASSWORD=
-DB_NAME=steam
+DB_NAME=steam_prod
 ```
 
 To verify you have set up the database correctly, run `mysql -uroot -p` and hit enter again (empty password). Run `use steam; show tables; describe games;` and you should get the following output:
 
 ```
 Database changed
-+-----------------+
-| Tables_in_steam |
-+-----------------+
-| games           |
-+-----------------+
-1 row in set (0.002 sec)
++----------------------+
+| Tables_in_steam_prod |
++----------------------+
+| descriptors          |
+| developers           |
+| game_details         |
+| game_developer       |
+| game_scores          |
+| games                |
++----------------------+
+6 rows in set (0.01 sec)
 
-+--------------+-----------------+------+-----+---------+----------------+
-| Field        | Type            | Null | Key | Default | Extra          |
-+--------------+-----------------+------+-----+---------+----------------+
-| id           | bigint unsigned | NO   | PRI | NULL    | auto_increment |
-| app_id       | int unsigned    | NO   | MUL | NULL    |                |
-| name         | varchar(255)    | NO   | MUL | NULL    |                |
-| release_date | date            | YES  |     | NULL    |                |
-| price        | decimal(10,2)   | YES  |     | NULL    |                |
-| genres       | varchar(512)    | YES  | MUL | NULL    |                |
-| developers   | varchar(512)    | YES  |     | NULL    |                |
-| publishers   | varchar(512)    | YES  |     | NULL    |                |
-| score        | int             | YES  |     | NULL    |                |
-| reviews      | text            | YES  |     | NULL    |                |
-| platforms    | varchar(64)     | YES  |     | NULL    |                |
-+--------------+-----------------+------+-----+---------+----------------+
++--------------+---------------+------+-----+---------+-------+
+| Field        | Type          | Null | Key | Default | Extra |
++--------------+---------------+------+-----+---------+-------+
+| app_id       | bigint        | NO   | PRI | NULL    |       |
+| name         | varchar(255)  | NO   |     | NULL    |       |
+| price        | decimal(10,2) | NO   | MUL | NULL    |       |
+| header_image | text          | YES  |     | NULL    |       |
+| score        | int           | YES  |     | NULL    |       |
+| description  | text          | YES  |     | NULL    |       |
++--------------+---------------+------+-----+---------+-------+
+6 rows in set (0.01 sec)
 ```
 
 Then, run `npm run dev` in both `steam-app/server` and `steam-app/web`. You should be able to open the webpage and see a basic UI.
