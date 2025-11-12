@@ -9,9 +9,10 @@
     "build": "tsc -p .",
     "start": "node --env-file=.env --enable-source-maps dist/index.js",
     "db:drop": "mysql -uroot -p < ../scripts/drop.sql",
-    "db:migrate:sample": "bash ../scripts/run-migrations.sh",
+    "db:migrate:sample": "bash ../scripts/run-migrations-sample.sh",
     "db:migrate:prod": "bash ../scripts/run-migrations-prod.sh",
     "db:setup:prod": "npm run db:drop && npm run db:migrate:prod",
+    "db:setup:sample": "npm run db:drop && npm run db:migrate:sample",
     "ingest": "tsx src/ingest.ts"
   },
   "keywords": [],
