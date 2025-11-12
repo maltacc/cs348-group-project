@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { z } from 'zod'
-import { pool } from '../db'
+import { pool, isProductionSchema } from '../db'
 
 const router = Router()
 const QuerySchema = z.object({
@@ -30,17 +30,19 @@ router.get('/', async (req, res) => {
   const conditions = []
   const params: any = { limit, offset }
 
+  const isProd = isProductionSchema()
+
   if (q) {
-    conditions.push('(name like :q)')
+    conditions.push('(g.name like :q)')
     params.q = `%${q}%`
   }
   if (price) {
-    conditions.push('price <= :price')
+    conditions.push('g.price <= :price')
     params.price = price
   }
   if (genres && genres.length > 0) {
     const genreConditions = genres.map(
-      (_, index) => `genres like :genre${index}`
+      (_, index) => `d.genres like :genre${index}`
     )
     conditions.push(`(${genreConditions.join(' AND ')})`)
     genres.forEach((genre, index) => {
@@ -51,17 +53,52 @@ router.get('/', async (req, res) => {
   const whereClause =
     conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
 
-  const [rows] = await pool.query(
-    `
-      select name, price, genres, score
-      from games
+  let query: string
+
+  if (isProd) {
+    // Production schema: games + descriptors join
+    query = `
+      SELECT 
+        g.app_id as id,
+        g.name, 
+        g.price, 
+        d.genres as genres, 
+        g.score
+      FROM games g
+      LEFT JOIN descriptors d ON g.app_id = d.app_id
       ${whereClause}
-      order by id asc
-      limit :limit offset :offset
-    `,
-    params
-  )
-  res.json(rows)
+      ORDER BY g.app_id ASC
+      LIMIT :limit OFFSET :offset
+    `
+  } else {
+    // Sample schema: games table only (alias table for consistency with WHERE clause)
+    const sampleWhereClause = whereClause
+      .replace(/g\./g, '')
+      .replace(/d\./g, '')
+
+    query = `
+      SELECT 
+        id,
+        name, 
+        price, 
+        genres, 
+        score
+      FROM games
+      ${sampleWhereClause}
+      ORDER BY id ASC
+      LIMIT :limit OFFSET :offset
+    `
+  }
+
+  const [rows] = await pool.query(query, params)
+
+  // Handle NULL values in application code (replace NULL with empty string)
+  const results = (rows as any[]).map((row) => ({
+    ...row,
+    genres: row.genres ?? '',
+  }))
+
+  res.json(results)
 })
 
 export default router
