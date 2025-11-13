@@ -1,10 +1,6 @@
-// import { Header } from "@/components/header";
 import { Input } from "@/components/ui/input";
-// import { useState, useMemo } from "react";
-// import { gamesData } from "@/lib/games-data";
-// import { filterGames } from "@/lib/recommendations";
 import { ChevronDown } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { GENRES, type Game } from "@/types";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -12,86 +8,56 @@ import {
 	Table,
 	TableBody,
 	TableCell,
+	TableFooter,
 	TableHead,
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
 import { Slider } from "@/components/ui/slider";
-import { MultiSelect } from "../multi-select";
-// import debounce from "lodash.debounce";
+import { MultiSelect } from "@/components/multi-select";
+import {
+	Select,
+	SelectContent,
+	SelectGroup,
+	SelectItem,
+	SelectTrigger,
+} from "@/components/ui/select";
 
 export default function BrowsePage() {
 	const [q, setQ] = useState("");
 	const [offset, setOffset] = useState(0);
-	const [price, setPrice] = useState(100);
+	const [price, setPrice] = useState<number | null>(100);
 	const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
 	const [showFilters, setShowFilters] = useState(true);
-	const limit = 20;
+	const [limit, setLimit] = useState(20);
 
-	// const [search, setSearch] = useState("");
-	// const [showFilters, setShowFilters] = useState(false);
-	// const [priceRange, setPriceRange] = useState<
-	// 	"all" | "free" | "under20" | "under40" | "over40"
-	// >("all");
-	// const [sortBy, setSortBy] = useState<"name" | "price" | "score">("name");
-	// const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
-	// const [selectedTags, setSelectedTags] = useState<string[]>([]);
+	// Applied filters (only updated when Search button is clicked)
+	const [appliedPrice, setAppliedPrice] = useState<number | null>(100);
+	const [appliedGenres, setAppliedGenres] = useState<string[]>([]);
 	const [filteredGames, setFilteredGames] = useState<Game[]>([]);
-	const renderPriceText = (price: number) => {
+
+	const renderPriceText = (price: number | null) => {
 		switch (price) {
 			case 0:
 				return <span>Free</span>;
-			case 210:
+			case null:
 				return <span>All Prices</span>;
 			default:
 				return <span>Under ${price}</span>;
 		}
 	};
 
-	// useEffect(() => {
-	// 	const c = new AbortController();
-	// 	const params = new URLSearchParams({
-	// 		limit: String(limit),
-	// 		offset: String(offset),
-	// 		q: q,
-	// 		price: String(price),
-	// 	});
-
-	// 	params.append("genres", selectedGenres.join(","));
-	// 	console.log("params", params.toString());
-
-	// 	fetch(`/api/games?${params.toString()}`, { signal: c.signal })
-	// 		.then((r) => r.json())
-	// 		.then(setFilteredGames)
-	// 		.catch(() => {});
-	// 	return () => c.abort();
-	// }, [q, offset, price, selectedGenres]);
-
-	// useEffect(() => {
-	// 	return () => {
-	// 		debouncedResults.cancel();
-	// 	};
-	// });
-
-	const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-		console.log("searching for", e.target.value);
-		setOffset(0);
-		setQ(e.target.value);
-	};
-	// const debouncedResults = useMemo(() => {
-	// 	return debounce(handleSearch, 1000);
-	// }, []);
-
-	const fetchGames = () => {
+	// Fetch games with current parameters
+	const fetchGames = useCallback(() => {
 		const c = new AbortController();
 		const params = new URLSearchParams({
 			limit: String(limit),
 			offset: String(offset),
 			q: q,
-			price: String(price),
+			price: String(appliedPrice),
 		});
 
-		params.append("genres", selectedGenres.join(","));
+		params.append("genres", appliedGenres.join(","));
 		console.log("params", params.toString());
 
 		fetch(`/api/games?${params.toString()}`, { signal: c.signal })
@@ -99,7 +65,33 @@ export default function BrowsePage() {
 			.then(setFilteredGames)
 			.catch(() => {});
 		return () => c.abort();
+	}, [limit, offset, q, appliedPrice, appliedGenres]);
+
+	// Apply filters and fetch
+	const handleSearchClick = () => {
+		setAppliedPrice(price);
+		setAppliedGenres(selectedGenres);
+		setOffset(0);
 	};
+
+	// Debounced search input effect
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			fetchGames();
+		}, 500);
+
+		return () => clearTimeout(timer);
+	}, [q]);
+
+	// Fetch when offset or limit changes
+	useEffect(() => {
+		fetchGames();
+	}, [offset, limit]);
+
+	// Fetch when applied filters change
+	useEffect(() => {
+		fetchGames();
+	}, [appliedPrice, appliedGenres]);
 
 	return (
 		<div
@@ -141,28 +133,11 @@ export default function BrowsePage() {
 							type="search"
 							placeholder="Search"
 							value={q}
-							onChange={handleSearch}
+							onChange={(e) => {
+								setQ(e.target.value);
+								setOffset(0);
+							}}
 						/>
-					</div>
-
-					<div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
-						<Button
-							onClick={() => {
-								setOffset(Math.max(0, offset - limit));
-							}}
-							// disabled={offset === 0}
-							disabled // TODO: disable for now until figure out search
-						>
-							Prev
-						</Button>
-						<Button
-							onClick={() => {
-								setOffset(offset + limit);
-							}}
-							disabled // TODO: disable for now until figure out search
-						>
-							Next
-						</Button>
 					</div>
 
 					<div
@@ -200,10 +175,15 @@ export default function BrowsePage() {
 							<Slider
 								id="slider"
 								min={0}
-								max={210}
-								value={[price]}
+								max={201}
+								value={price === null ? [201] : [price]}
 								onValueChange={(value) => {
-									setPrice(value[0]); // TODO: price = free ($0) and ANY not working
+									if (value[0] === 201) {
+										// "All Prices" option
+										setPrice(null);
+									} else {
+										setPrice(value[0]);
+									}
 								}}
 								style={{
 									width: 220,
@@ -222,7 +202,7 @@ export default function BrowsePage() {
 							onValueChange={setSelectedGenres}
 							defaultValue={selectedGenres}
 						/>
-						<Button onClick={fetchGames}>Search</Button>
+						<Button onClick={handleSearchClick}>Search</Button>
 					</div>
 				)}
 			</div>
@@ -235,14 +215,7 @@ export default function BrowsePage() {
 					overflow: "hidden",
 				}}
 			>
-				<Table
-				// cellPadding={10}
-				// style={{
-				// 	borderCollapse: "separate",
-				// 	borderSpacing: 0,
-				// 	width: "100%",
-				// }}
-				>
+				<Table>
 					<TableHeader>
 						<TableRow>
 							<TableHead>Name</TableHead>
@@ -252,7 +225,7 @@ export default function BrowsePage() {
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						{filteredGames.map((r, i) => (
+						{filteredGames.map((r) => (
 							<TableRow
 								key={r.id}
 								// style={{
@@ -273,6 +246,50 @@ export default function BrowsePage() {
 							</TableRow>
 						))}
 					</TableBody>
+					<TableFooter>
+						<TableRow>
+							<TableCell colSpan={4} className="p-2">
+								<div className="w-full flex items-center justify-between">
+									<Select onValueChange={(value) => setLimit(Number(value))}>
+										<SelectTrigger>
+											<span>{`Show ${limit} results`}</span>
+										</SelectTrigger>
+										<SelectContent>
+											<SelectGroup>
+												<SelectItem value="10">10</SelectItem>
+												<SelectItem value="20">20</SelectItem>
+												<SelectItem value="50">50</SelectItem>
+												<SelectItem value="100">100</SelectItem>
+											</SelectGroup>
+										</SelectContent>
+									</Select>
+
+									<div
+										style={{ display: "flex", gap: 8, alignItems: "center" }}
+									>
+										<span className="center mr-2">
+											{offset + 1} - {offset + limit}
+										</span>
+										<Button
+											onClick={() => {
+												setOffset(Math.max(0, offset - limit));
+											}}
+											disabled={offset === 0}
+										>
+											Prev
+										</Button>
+										<Button
+											onClick={() => {
+												setOffset(offset + limit);
+											}}
+										>
+											Next
+										</Button>
+									</div>
+								</div>
+							</TableCell>
+						</TableRow>
+					</TableFooter>
 				</Table>
 			</div>
 		</div>
