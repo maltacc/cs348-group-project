@@ -101,4 +101,86 @@ router.get('/', async (req, res) => {
 	res.json(results);
 });
 
+router.get('/:id', async (req, res) => {
+	const gameId = req.params.id;
+	const isProd = isProductionSchema();
+	let query: string;
+
+	if (isProd) {
+		query = `
+      SELECT 
+        g.app_id as id,
+        g.name,
+        g.price,
+        g.description,
+        g.score,
+        gd.release_date as releaseDate,
+        d.genres,
+        d.tags,
+        gs.user_score as userScore,
+		gs.metacritic_score as criticScore,
+        gs.player_sentiment as sentiment,
+        GROUP_CONCAT(DISTINCT dev.name SEPARATOR ', ') as developer
+      FROM games g
+      LEFT JOIN game_details gd ON g.app_id = gd.app_id
+      LEFT JOIN descriptors d ON g.app_id = d.app_id
+      LEFT JOIN game_scores gs ON g.app_id = gs.app_id
+      LEFT JOIN game_developer gdev ON g.app_id = gdev.app_id
+      LEFT JOIN developers dev ON gdev.developer_id = dev.developer_id
+      WHERE g.app_id = :gameId
+      GROUP BY g.app_id
+      LIMIT 1
+    `;
+	} else {
+		query = `
+      SELECT
+        id,
+        name,
+        price,
+        genres,
+        score,
+        description,
+        release_date
+      FROM games
+      WHERE id = :gameId
+      LIMIT 1
+    `;
+	}
+	const [rows] = await pool.query(query, { gameId });
+	const game = (rows as any[])[0];
+	if (!game) {
+		return res.status(404).json({ error: 'Game not found' });
+	}
+
+	const result = {
+		id: game.id,
+		name: game.name,
+		price: game.price,
+		description: game.description || '',
+		releaseDate: game.releaseDate,
+		developer: game.developer || 'Unknown',
+		publisher: game.developer || 'Unknown', // Using developer as publisher
+		score: game.score,
+		userScore: game.userScore,
+		criticScore: game.criticScore,
+		sentiment:
+			game.sentiment > 0.7
+				? 'positive'
+				: game.sentiment > 0.4
+				? 'mixed'
+				: 'negative',
+		genres: game.genres
+			? game.genres.split(',').map((g: string) => g.trim())
+			: [],
+		tags: game.tags
+			? game.tags
+					.split(',')
+					.map((t: string) => t.trim())
+					.slice(0, 10)
+			: [],
+	};
+
+	res.json(result);
+});
+
 export default router;
