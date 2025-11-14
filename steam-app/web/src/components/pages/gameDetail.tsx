@@ -338,7 +338,10 @@ export default function GameDetailPage() {
 								paddingTop: 8,
 								scrollBehavior: 'smooth',
 								WebkitOverflowScrolling: 'touch',
-							}}>
+								scrollbarWidth: 'none',
+								msOverflowStyle: 'none',
+							}}
+							className='[&::-webkit-scrollbar]:hidden'>
 							{recsLoading ? (
 								<Card style={{ minWidth: '100%' }}>
 									<CardContent className='flex items-center justify-center py-12'>
@@ -463,7 +466,10 @@ export default function GameDetailPage() {
 								paddingTop: 8,
 								scrollBehavior: 'smooth',
 								WebkitOverflowScrolling: 'touch',
-							}}>
+								scrollbarWidth: 'none',
+								msOverflowStyle: 'none',
+							}}
+							className='[&::-webkit-scrollbar]:hidden'>
 							{recsLoading ? (
 								<Card style={{ minWidth: '100%' }}>
 									<CardContent className='flex items-center justify-center py-12'>
