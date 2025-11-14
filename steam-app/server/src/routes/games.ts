@@ -197,6 +197,7 @@ router.get('/:id/recommendations/developer', async (req, res) => {
 
   const query = `
     SELECT DISTINCT
+	  g.app_id as id,
       g.name,
       g.score,
       g.price
