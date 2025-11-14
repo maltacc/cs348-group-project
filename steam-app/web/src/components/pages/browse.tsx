@@ -1,9 +1,10 @@
 import { Input } from '@/components/ui/input';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Star } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { GENRES, type Game } from '@/types';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
 	Table,
 	TableBody,
@@ -236,12 +237,31 @@ export default function BrowsePage() {
 								<TableCell>
 									{r.price == null
 										? ''
-										: r.price === 0
-										? 'Free'
-										: Number(r.price).toFixed(2)}
+										: `$${Number(r.price).toFixed(2)}`}
 								</TableCell>
-								<TableCell>{r.genres?.replace(/;/g, ', ') ?? ''}</TableCell>
-								<TableCell>{r.score ?? ''}</TableCell>
+							<TableCell>
+								{r.genres ? (
+									<div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+										{r.genres.split(',').map((genre) => (
+											<Badge key={genre.trim()} variant='outline'>
+												{genre.trim()}
+											</Badge>
+										))}
+									</div>
+								) : (
+									''
+								)}
+							</TableCell>
+								<TableCell>
+									{r.score ? (
+										<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+											<Star style={{ width: 14, height: 14, color: '#f59e0b' }} />
+											<span>{r.score}%</span>
+										</div>
+									) : (
+										''
+									)}
+								</TableCell>
 							</TableRow>
 						))}
 					</TableBody>
