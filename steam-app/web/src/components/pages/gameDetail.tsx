@@ -336,27 +336,28 @@ export default function GameDetailPage() {
 								)}`;
 							})()}
 						</h3>
-						<Carousel
-							style={{
-								width: '100%',
-							}}
-							opts={{
-								align: 'start',
-								loop: true,
-								skipSnaps: true,
-							}}>
-							<CarouselContent>
-								{recsLoading ? (
-									<Card style={{ minWidth: '100%' }}>
-										<CardContent className='flex items-center justify-center py-12'>
-											<p style={{ color: '#9ca3af' }}>
-												Loading recommendations...
-											</p>
-										</CardContent>
-									</Card>
-								) : sameGenreGames.length > 0 ? (
-									sameGenreGames.slice(0, 10).map((game) => (
-										<CarouselItem className='md:basis-1/2 lg:basis-1/3'>
+
+						{recsLoading ? (
+							<Card style={{ minWidth: '100%' }}>
+								<CardContent className='flex items-center justify-center py-12'>
+									<p style={{ color: '#9ca3af' }}>Loading recommendations...</p>
+								</CardContent>
+							</Card>
+						) : sameGenreGames.length > 0 ? (
+							<Carousel
+								style={{
+									width: '100%',
+								}}
+								opts={{
+									align: 'start',
+									loop: true,
+									skipSnaps: true,
+								}}>
+								<CarouselContent>
+									{sameGenreGames.slice(0, 10).map((game) => (
+										<CarouselItem
+											key={`${game.id}-genre`}
+											className='md:basis-1/2 lg:basis-1/3'>
 											<Card
 												key={`${game.id}-genre`}
 												style={{
@@ -451,21 +452,21 @@ export default function GameDetailPage() {
 												</CardContent>
 											</Card>
 										</CarouselItem>
-									))
-								) : (
-									<Card style={{ minWidth: '100%' }}>
-										<CardContent className='flex items-center justify-center py-12'>
-											<p style={{ color: '#9ca3af' }}>
-												No recommendations available
-											</p>
-										</CardContent>
-									</Card>
-								)}
-							</CarouselContent>
+									))}
+								</CarouselContent>
 
-							<CarouselPrevious />
-							<CarouselNext />
-						</Carousel>
+								<CarouselPrevious />
+								<CarouselNext />
+							</Carousel>
+						) : (
+							<Card style={{ minWidth: '100%' }}>
+								<CardContent className='flex items-center justify-center py-12'>
+									<p style={{ color: '#9ca3af' }}>
+										No recommendations available
+									</p>
+								</CardContent>
+							</Card>
+						)}
 					</div>
 
 					{/* Same Developer Carousel */}
@@ -487,136 +488,142 @@ export default function GameDetailPage() {
 									.join(', ')}, and ${devs.at(-1)}`;
 							})()}
 						</h3>
-						<Carousel
-							style={{
-								width: '100%',
-							}}
-							opts={{
-								align: 'start',
-								loop: true,
-								skipSnaps: true,
-							}}>
-							<CarouselContent>
-								{recsLoading ? (
-									<Card style={{ minWidth: '100%' }}>
-										<CardContent className='flex items-center justify-center py-12'>
-											<p style={{ color: '#9ca3af' }}>
-												Loading recommendations...
-											</p>
-										</CardContent>
-									</Card>
-								) : developerGames.length > 0 ? (
-									developerGames.slice(0, 10).map((game) => (
-										<CarouselItem className='md:basis-1/3 lg:basis-1/4'>
-											<Card
+						<div>
+							{recsLoading ? (
+								<Card style={{ minWidth: '100%' }}>
+									<CardContent className='flex items-center justify-center py-12'>
+										<p style={{ color: '#9ca3af' }}>
+											Loading recommendations...
+										</p>
+									</CardContent>
+								</Card>
+							) : developerGames.length > 0 ? (
+								<Carousel
+									style={{
+										width: '100%',
+									}}
+									opts={{
+										align: 'start',
+										loop: true,
+										skipSnaps: true,
+									}}>
+									<CarouselContent>
+										{developerGames.slice(0, 10).map((game) => (
+											<CarouselItem
 												key={`${game.id}-dev`}
-												style={{
-													minWidth: 250,
-													display: 'flex',
-													flexDirection: 'column',
-													background: '#1a1f24',
-													border: '1px solid #2a3138',
-													cursor: 'pointer',
-													transition: 'all 0.3s ease',
-													marginTop: 4,
-												}}
-												onClick={() => navigate(`/games/${game.id}`)}
-												onMouseEnter={(e) => {
-													e.currentTarget.style.borderColor = '#4f46e5';
-													e.currentTarget.style.transform = 'translateY(-4px)';
-												}}
-												onMouseLeave={(e) => {
-													e.currentTarget.style.borderColor = '#2a3138';
-													e.currentTarget.style.transform = 'translateY(0)';
-												}}>
-												<CardContent style={{ padding: 16, flex: 1 }}>
-													<h4
-														style={{
-															fontSize: 16,
-															fontWeight: 600,
-															marginBottom: 12,
-															display: '-webkit-box',
-															WebkitBoxOrient: 'vertical',
-															WebkitLineClamp: 2,
-															overflow: 'hidden',
-														}}>
-														{game.name}
-													</h4>
-													<div
-														style={{
-															display: 'flex',
-															flexDirection: 'column',
-															gap: 8,
-														}}>
-														{game.score !== null &&
-															game.score !== undefined && (
+												className='md:basis-1/3 lg:basis-1/4'>
+												<Card
+													key={`${game.id}-dev`}
+													style={{
+														minWidth: 250,
+														display: 'flex',
+														flexDirection: 'column',
+														background: '#1a1f24',
+														border: '1px solid #2a3138',
+														cursor: 'pointer',
+														transition: 'all 0.3s ease',
+														marginTop: 4,
+													}}
+													onClick={() => navigate(`/games/${game.id}`)}
+													onMouseEnter={(e) => {
+														e.currentTarget.style.borderColor = '#4f46e5';
+														e.currentTarget.style.transform =
+															'translateY(-4px)';
+													}}
+													onMouseLeave={(e) => {
+														e.currentTarget.style.borderColor = '#2a3138';
+														e.currentTarget.style.transform = 'translateY(0)';
+													}}>
+													<CardContent style={{ padding: 16, flex: 1 }}>
+														<h4
+															style={{
+																fontSize: 16,
+																fontWeight: 600,
+																marginBottom: 12,
+																display: '-webkit-box',
+																WebkitBoxOrient: 'vertical',
+																WebkitLineClamp: 2,
+																overflow: 'hidden',
+															}}>
+															{game.name}
+														</h4>
+														<div
+															style={{
+																display: 'flex',
+																flexDirection: 'column',
+																gap: 8,
+															}}>
+															{game.score !== null &&
+																game.score !== undefined && (
+																	<div
+																		style={{
+																			display: 'flex',
+																			alignItems: 'center',
+																			gap: 8,
+																			fontSize: 14,
+																		}}>
+																		<Star
+																			style={{
+																				width: 14,
+																				height: 14,
+																				color: '#f59e0b',
+																			}}
+																		/>
+																		<span style={{ color: '#9ca3af' }}>
+																			{game.score}%
+																		</span>
+																	</div>
+																)}
+															{game.price !== null &&
+																game.price !== undefined && (
+																	<div
+																		style={{ fontSize: 14, color: '#9ca3af' }}>
+																		${game.price}
+																	</div>
+																)}
+															{game.genres && (
 																<div
 																	style={{
 																		display: 'flex',
-																		alignItems: 'center',
-																		gap: 8,
-																		fontSize: 14,
+																		flex: 'wrap',
+																		gap: 6,
+																		marginTop: 8,
 																	}}>
-																	<Star
-																		style={{
-																			width: 14,
-																			height: 14,
-																			color: '#f59e0b',
-																		}}
-																	/>
-																	<span style={{ color: '#9ca3af' }}>
-																		{game.score}%
-																	</span>
+																	{typeof game.genres === 'string'
+																		? game.genres
+																				.split(',')
+																				.slice(0, 2)
+																				.map((g) => (
+																					<Badge
+																						key={g.trim()}
+																						variant='outline'
+																						style={{ fontSize: 11 }}>
+																						{g.trim()}
+																					</Badge>
+																				))
+																		: null}
 																</div>
 															)}
-														{game.price !== null &&
-															game.price !== undefined && (
-																<div style={{ fontSize: 14, color: '#9ca3af' }}>
-																	${game.price}
-																</div>
-															)}
-														{game.genres && (
-															<div
-																style={{
-																	display: 'flex',
-																	flex: 'wrap',
-																	gap: 6,
-																	marginTop: 8,
-																}}>
-																{typeof game.genres === 'string'
-																	? game.genres
-																			.split(',')
-																			.slice(0, 2)
-																			.map((g) => (
-																				<Badge
-																					key={g.trim()}
-																					variant='outline'
-																					style={{ fontSize: 11 }}>
-																					{g.trim()}
-																				</Badge>
-																			))
-																	: null}
-															</div>
-														)}
-													</div>
-												</CardContent>
-											</Card>
-										</CarouselItem>
-									))
-								) : (
-									<Card style={{ minWidth: '100%' }}>
-										<CardContent className='flex items-center justify-center py-12'>
-											<p style={{ color: '#9ca3af' }}>
-												No recommendations available
-											</p>
-										</CardContent>
-									</Card>
-								)}
-							</CarouselContent>
+														</div>
+													</CardContent>
+												</Card>
+											</CarouselItem>
+										))}
+									</CarouselContent>
 
-							<CarouselPrevious />
-							<CarouselNext />
-						</Carousel>
+									<CarouselPrevious />
+									<CarouselNext />
+								</Carousel>
+							) : (
+								<Card style={{ minWidth: '100%' }}>
+									<CardContent className='flex items-center justify-center py-12'>
+										<p style={{ color: '#9ca3af' }}>
+											No recommendations available
+										</p>
+									</CardContent>
+								</Card>
+							)}
+						</div>
 					</div>
 				</div>
 			</div>
