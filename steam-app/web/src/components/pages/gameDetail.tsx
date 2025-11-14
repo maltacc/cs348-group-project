@@ -150,7 +150,7 @@ export default function GameDetailPage() {
 									<span>User Score</span>
 								</div>
 								<p style={{ fontSize: 28, fontWeight: 'bold' }}>
-									{game.userScore}%
+									{game.score}%
 								</p>
 							</div>
 
