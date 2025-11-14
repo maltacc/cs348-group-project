@@ -56,16 +56,34 @@ export default function BrowsePage() {
 			limit: String(limit),
 			offset: String(offset),
 			q: q,
-			price: String(appliedPrice),
 		});
+
+		if (appliedPrice !== null) {
+			params.append('price', String(appliedPrice));
+		}
 
 		params.append('genres', appliedGenres.join(','));
 		console.log('params', params.toString());
 
 		fetch(`/api/games?${params.toString()}`, { signal: c.signal })
-			.then((r) => r.json())
-			.then(setFilteredGames)
-			.catch(() => {});
+			.then((r) => {
+				if (!r.ok) {
+					// Check if response is an error status (400, 404, 500, etc.)
+					throw new Error(`HTTP error! status: ${r.status}`);
+				}
+				return r.json();
+			})
+			.then((r) => {
+				setFilteredGames(r);
+			})
+			.catch((error) => {
+				if (error.name === 'AbortError') {
+					console.log('Fetch aborted');
+				} else {
+					console.error('Error fetching games:', error);
+					setFilteredGames([]); // Clear results on error
+				}
+			});
 		return () => c.abort();
 	}, [limit, offset, q, appliedPrice, appliedGenres]);
 
@@ -199,7 +217,7 @@ export default function BrowsePage() {
 							onValueChange={setSelectedGenres}
 							defaultValue={selectedGenres}
 						/>
-						<Button onClick={handleSearchClick}>Search</Button>
+						<Button onClick={handleSearchClick}>Apply Filters</Button>
 					</div>
 				)}
 			</div>
@@ -221,49 +239,56 @@ export default function BrowsePage() {
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						{filteredGames.map((r) => (
-							<TableRow
-								key={r.id}
-								// style={{
-								// 	background: i % 2 ? "#171c21" : "transparent",
-								// 	borderTop: "1px solid #2a3138",
-								// }}
-							>
-								<TableCell>
-									<Link to={`/games/${r.id}`} className='hover:underline'>
-										{r.name}
-									</Link>
-								</TableCell>
-								<TableCell>
-									{r.price == null
-										? ''
-										: `$${Number(r.price).toFixed(2)}`}
-								</TableCell>
-							<TableCell>
-								{r.genres ? (
-									<div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-										{r.genres.split(',').map((genre) => (
-											<Badge key={genre.trim()} variant='outline'>
-												{genre.trim()}
-											</Badge>
-										))}
-									</div>
-								) : (
-									''
-								)}
-							</TableCell>
-								<TableCell>
-									{r.score ? (
-										<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-											<Star style={{ width: 14, height: 14, color: '#f59e0b' }} />
-											<span>{r.score}%</span>
-										</div>
-									) : (
-										''
-									)}
-								</TableCell>
-							</TableRow>
-						))}
+						{filteredGames &&
+							filteredGames.map((r) => (
+								<TableRow
+									key={r.id}
+									// style={{
+									// 	background: i % 2 ? "#171c21" : "transparent",
+									// 	borderTop: "1px solid #2a3138",
+									// }}
+								>
+									<TableCell>
+										<Link to={`/games/${r.id}`} className='hover:underline'>
+											{r.name}
+										</Link>
+									</TableCell>
+									<TableCell>
+										{r.price == null ? '' : `$${Number(r.price).toFixed(2)}`}
+									</TableCell>
+									<TableCell>
+										{r.genres ? (
+											<div
+												style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+												{r.genres.split(',').map((genre) => (
+													<Badge key={genre.trim()} variant='outline'>
+														{genre.trim()}
+													</Badge>
+												))}
+											</div>
+										) : (
+											''
+										)}
+									</TableCell>
+									<TableCell>
+										{r.score ? (
+											<div
+												style={{
+													display: 'flex',
+													alignItems: 'center',
+													gap: 6,
+												}}>
+												<Star
+													style={{ width: 14, height: 14, color: '#f59e0b' }}
+												/>
+												<span>{r.score}%</span>
+											</div>
+										) : (
+											''
+										)}
+									</TableCell>
+								</TableRow>
+							))}
 					</TableBody>
 					<TableFooter>
 						<TableRow>

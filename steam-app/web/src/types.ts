@@ -28,44 +28,74 @@ export type GameDetail = {
 };
 
 export type Genres =
-	| 'MOBA'
-	| 'Strategy'
+	| '360 Video'
+	| 'Accounting'
 	| 'Action'
-	| 'FPS'
-	| 'Tactical'
-	| 'Battle Royale'
 	| 'Adventure'
-	| 'Open World'
-	| 'Souls-like'
-	| 'Simulation'
-	| 'RPG'
-	| 'Farming'
+	| 'Animation & Modeling'
+	| 'Audio Production'
+	| 'Casual'
+	| 'Design & Illustration'
+	| 'Documentary'
+	| 'Early Access'
+	| 'Education'
+	| 'Episodic'
+	| 'Free to Play'
+	| 'Game Development'
+	| 'Gore'
 	| 'Indie'
-	| 'Sci-Fi'
-	| 'Multiplayer'
-	| 'Survival'
-	| 'Horror'
-	| 'Co-op';
+	| 'Massively Multiplayer'
+	| 'Movie'
+	| 'Nudity'
+	| 'Photo Editing'
+	| 'RPG'
+	| 'Racing'
+	| 'Sexual Content'
+	| 'Short'
+	| 'Simulation'
+	| 'Software Training'
+	| 'Sports'
+	| 'Strategy'
+	| 'Tutorial'
+	| 'Utilities'
+	| 'Video Production'
+	| 'Violent'
+	| 'Web Publishing';
 
 export const GENRES: Genres[] = [
-	'MOBA',
-	'Strategy',
+	'360 Video',
+	'Accounting',
 	'Action',
-	'FPS',
-	'Tactical',
-	'Battle Royale',
 	'Adventure',
-	'Open World',
-	'Souls-like',
-	'Simulation',
-	'RPG',
-	'Farming',
+	'Animation & Modeling',
+	'Audio Production',
+	'Casual',
+	'Design & Illustration',
+	'Documentary',
+	'Early Access',
+	'Education',
+	'Episodic',
+	'Free to Play',
+	'Game Development',
+	'Gore',
 	'Indie',
-	'Sci-Fi',
-	'Multiplayer',
-	'Survival',
-	'Horror',
-	'Co-op',
+	'Massively Multiplayer',
+	'Movie',
+	'Nudity',
+	'Photo Editing',
+	'RPG',
+	'Racing',
+	'Sexual Content',
+	'Short',
+	'Simulation',
+	'Software Training',
+	'Sports',
+	'Strategy',
+	'Tutorial',
+	'Utilities',
+	'Video Production',
+	'Violent',
+	'Web Publishing',
 ];
 
 export type Tags =
@@ -95,4 +125,4 @@ export type Rec = {
 	score?: number | null;
 	price?: number | null;
 	genres?: string | null;
-}
+};

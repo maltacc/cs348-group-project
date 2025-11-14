@@ -74,6 +74,12 @@ DB_PASSWORD=
 DB_NAME=steam_prod
 ```
 
+Still in `steam-app/server`, **unzip** the **raw.json.zip** file and ingest it into the db by running:
+
+```
+npm run ingest
+```
+
 To verify you have set up the database correctly, run `mysql -uroot -p` and hit enter again (empty password). Run `use steam_prod/steam; show tables; describe games;` and you should get the following output:
 
 ```
@@ -102,6 +108,7 @@ Database changed
 +--------------+---------------+------+-----+---------+-------+
 6 rows in set (0.01 sec)
 ```
+
 ## For the Sample Database
 
 In `steam-app/server`:
