@@ -57,12 +57,12 @@ net start mysql
 # Or if neither of those work, open the 'services' system app, find MySQL<version>, right click and start
 ```
 
-## For the database
+## For the Production Database
 
 In `steam-app/server`:
 
 ```
-npm run db:setup:prod/db:setup:sample
+npm run db:setup:prod
 ```
 
 Create a `.env` file under `steam-app/server` and add the following lines:
@@ -71,7 +71,7 @@ Create a `.env` file under `steam-app/server` and add the following lines:
 DB_HOST=127.0.0.1
 DB_USER=root
 DB_PASSWORD=
-DB_NAME=steam_prod/steam
+DB_NAME=steam_prod
 ```
 
 To verify you have set up the database correctly, run `mysql -uroot -p` and hit enter again (empty password). Run `use steam_prod/steam; show tables; describe games;` and you should get the following output:
@@ -102,7 +102,52 @@ Database changed
 +--------------+---------------+------+-----+---------+-------+
 6 rows in set (0.01 sec)
 ```
+## For the Sample Database
+
+In `steam-app/server`:
+
+```
+npm run db:setup:sample
+```
+
+Create a `.env` file under `steam-app/server` and add the following lines:
+
+```
+DB_HOST=127.0.0.1
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=steam_sample
+```
+
+To verify you have set up the database correctly, run `mysql -uroot -p` and hit enter again (empty password). Run `use steam_sample; show tables; describe games;` and you should get the following output:
+
+```
+Database changed
++------------------------+
+| Tables_in_steam_sample |
++------------------------+
+| descriptors            |
+| developers             |
+| game_details           |
+| game_developer         |
+| game_scores            |
+| games                  |
++------------------------+
+6 rows in set (0.001 sec)
+
++--------------+---------------+------+-----+---------+-------+
+| Field        | Type          | Null | Key | Default | Extra |
++--------------+---------------+------+-----+---------+-------+
+| app_id       | bigint        | NO   | PRI | NULL    |       |
+| name         | varchar(255)  | NO   |     | NULL    |       |
+| price        | decimal(10,2) | NO   | MUL | NULL    |       |
+| header_image | text          | YES  |     | NULL    |       |
+| score        | int           | YES  |     | NULL    |       |
+| description  | text          | YES  |     | NULL    |       |
++--------------+---------------+------+-----+---------+-------+
+6 rows in set (0.015 sec)
+```
 
 Then, run `npm run dev` in both `steam-app/server` and `steam-app/web`. You should be able to open the webpage and see a basic UI.
 
-![](https://media.discordapp.net/attachments/1420115967857660007/1430379936237092935/Screenshot_2025-10-21_at_10.19.09_PM.png?ex=68f9909f&is=68f83f1f&hm=8f4a274a4fddb2c25827782312d1963df7e6a453e0d7c97354c5ab479d5a92f4&=&format=webp&quality=lossless&width=1863&height=856)
+![](https://media.discordapp.net/attachments/779019590210027560/1439005638306037824/Screenshot_2025-11-14_at_4.34.35_PM.png?ex=6918f1ef&is=6917a06f&hm=7dec610b964675e91b2e2ac74d25fe692349c1fadc5a6352de9a808aea2e2e56&=&format=webp&quality=lossless&width=1100&height=576)
