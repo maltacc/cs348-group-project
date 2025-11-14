@@ -141,4 +141,81 @@ router.get('/:id', async (req, res) => {
   res.json(result)
 })
 
+// Get recommended games by genre
+router.get('/:id/recommendations/genre', async (req, res) => {
+  const gameId = req.params.id
+  try {
+    const [genre_rows] = await pool.query(
+      'SELECT genres FROM descriptors WHERE app_id = :gameId LIMIT 1',
+      { gameId }
+    )
+    const genresStr = (genre_rows as any[])[0]?.genres || ''
+    const genres: string[] = genresStr
+      .split(',')
+      .map((s: string) => s.trim())
+      .filter((s: string) => s.length > 0)
+
+    if (genres.length === 0) {
+      return res.json([])
+    }
+
+    const params: any = { gameId }
+    const conditions = genres.map((g: string, i: number) => {
+      params[`genre${i}`] = `%${g}%`
+      return `d.genres LIKE :genre${i}`
+    })
+
+    const query = `
+      SELECT DISTINCT
+        g.app_id as id,
+        g.name,
+        g.score,
+        g.price,
+        d.genres
+      FROM games g
+      JOIN descriptors d ON g.app_id = d.app_id
+      WHERE g.app_id != :gameId
+        AND (${conditions.join(' OR ')})
+      ORDER BY g.score DESC, g.name ASC
+      LIMIT 10
+    `
+
+    const [rows] = await pool.query(query, params)
+    const results = (rows as any[]).map((row) => ({
+      ...row,
+      genres: row.genres ?? '',
+    }))
+    res.json(results)
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch genre recommendations' })
+  }
+})
+
+// Get recommended games by developer
+router.get('/:id/recommendations/developer', async (req, res) => {
+  const gameId = req.params.id
+
+  const query = `
+    SELECT DISTINCT
+      g.name,
+      g.score,
+      g.price
+    FROM games g
+    JOIN game_developer gd ON gd.app_id = g.app_id
+    WHERE g.app_id != :gameId
+      AND gd.developer_id IN (
+        SELECT gd2.developer_id FROM game_developer gd2 WHERE gd2.app_id = :gameId
+      )
+    ORDER BY g.score DESC
+    LIMIT 10
+  `
+
+  try {
+    const [rows] = await pool.query(query, { gameId })
+    res.json(rows)
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch developer recommendations' })
+  }
+})
+
 export default router

@@ -88,3 +88,11 @@ export const TAGS: Tags[] = [
 	'Cozy',
 	'Challenging',
 ];
+
+export type Rec = {
+	id?: number;
+	name: string;
+	score?: number | null;
+	price?: number | null;
+	genres?: string | null;
+}

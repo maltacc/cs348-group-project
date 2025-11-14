@@ -2,17 +2,23 @@
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Link } from 'react-router-dom';
+import { Card, CardContent } from '@/components/ui/card';
+import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { Star, Users, ArrowLeft } from 'lucide-react';
 import { useParams } from 'react-router-dom';
-import type { GameDetail } from '@/types';
+import type { GameDetail, Rec } from '@/types';
 
 export default function GameDetailPage() {
 	const params = useParams();
 	const gameId = params.id as string;
 	// const game = mockGamesData.find((g) => g.id === gameId);
+	const navigate = useNavigate();
 	const [game, setGame] = useState<GameDetail | null>(null);
+
+	const [sameGenreGames, setSameGenreGames] = useState<Rec[]>([])
+	const [developerGames, setDeveloperGames] = useState<Rec[]>([])
+	const [recsLoading, setRecsLoading] = useState(false)
 	// const [isWishlisted, setIsWishlisted] = useState(false);
 	// const recommendedGames = game ? getRecommendedGames(game, gamesData) : [];
 
@@ -30,6 +36,30 @@ export default function GameDetailPage() {
 			.catch(() => {});
 		return () => c.abort();
 	}, [gameId]);
+
+	// Fetch recommendations after game loads
+	useEffect(() => {
+		if (!game) return
+		const c = new AbortController()
+		setRecsLoading(true)
+
+		Promise.all([
+			fetch(`/api/games/${gameId}/recommendations/genre`, { signal: c.signal })
+				.then((r) => r.json())
+				.catch(() => {}),
+			fetch(`/api/games/${gameId}/recommendations/developer`, { signal: c.signal })
+				.then((r) => r.json())
+				.catch(() => {}),
+		])
+			.then(([genreRecs, devRecs]) => {
+				setSameGenreGames(Array.isArray(genreRecs) ? genreRecs : [])
+				setDeveloperGames(Array.isArray(devRecs) ? devRecs : [])
+			})
+			.catch(() => {})
+			.finally(() => setRecsLoading(false))
+
+		return () => c.abort()
+	}, [game, gameId])
 
 	if (!game) {
 		return (
@@ -109,7 +139,7 @@ export default function GameDetailPage() {
 										color: '#9ca3af',
 										marginBottom: 8,
 									}}>
-									<Star style={{ width: 16, height: 16 }} />
+									<Star style={{ width: 16, height: 16, color: '#f59e0b' }} />
 									<span>User Score</span>
 								</div>
 								<p style={{ fontSize: 28, fontWeight: 'bold' }}>
@@ -133,7 +163,7 @@ export default function GameDetailPage() {
 										color: '#9ca3af',
 										marginBottom: 8,
 									}}>
-									<Star style={{ width: 16, height: 16 }} />
+									<Star style={{ width: 16, height: 16, color: '#f59e0b' }} />
 									<span>Metacritic</span>
 								</div>
 								<p style={{ fontSize: 28, fontWeight: 'bold' }}>
@@ -273,6 +303,267 @@ export default function GameDetailPage() {
 									</div>
 								</div>
 							</div>
+						</div>
+					</div>
+				</div>
+
+				{/* Recommendations Section */}
+				<div style={{ marginTop: 48 }}>
+					<h2 style={{ fontSize: 28, fontWeight: 'bold', marginBottom: 24 }}>
+						Similar Games
+					</h2>
+
+					{/* Same Genre Carousel */}
+					<div style={{ marginBottom: 40 }}>
+						<h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 16 }}>
+							Top Games in {
+								(() => {
+									const genres = game.genres ?? [];
+
+									if (genres.length === 0) return "Similar Genres";
+									if (genres.length === 1) return genres[0];
+									if (genres.length === 2) return `${genres[0]} and ${genres[1]}`;
+
+									return `${genres.slice(0, -1).join(", ")}, and ${genres.at(-1)}`;
+								})()
+							}
+						</h3>
+						<div
+							style={{
+								display: 'flex',
+								gap: 12,
+								overflowX: 'auto',
+								overflowY: 'visible',
+								paddingBottom: 12,
+								paddingTop: 8,
+								scrollBehavior: 'smooth',
+								WebkitOverflowScrolling: 'touch',
+							}}>
+							{recsLoading ? (
+								<Card style={{ minWidth: '100%' }}>
+									<CardContent className='flex items-center justify-center py-12'>
+										<p style={{ color: '#9ca3af' }}>
+											Loading recommendations...
+										</p>
+									</CardContent>
+								</Card>
+							) : sameGenreGames.length > 0 ? (
+								sameGenreGames.slice(0, 10).map((game) => (
+										<Card
+											key={`${game.id}-genre`}
+											style={{
+												minWidth: 250,
+												display: 'flex',
+												flexDirection: 'column',
+												background: '#1a1f24',
+												border: '1px solid #2a3138',
+												cursor: 'pointer',
+												transition: 'all 0.3s ease',
+											}}
+											onClick={() => navigate(`/games/${game.id}`)}
+											onMouseEnter={(e) => {
+											e.currentTarget.style.borderColor = '#4f46e5';
+											e.currentTarget.style.transform = 'translateY(-4px)';
+										}}
+										onMouseLeave={(e) => {
+											e.currentTarget.style.borderColor = '#2a3138';
+											e.currentTarget.style.transform = 'translateY(0)';
+										}}>
+										<CardContent style={{ padding: 16, flex: 1 }}>
+											<h4
+												style={{
+													fontSize: 16,
+													fontWeight: 600,
+													marginBottom: 12,
+													display: '-webkit-box',
+													WebkitBoxOrient: 'vertical',
+													WebkitLineClamp: 2,
+													overflow: 'hidden',
+												}}
+											>
+												{game.name}
+											</h4>
+											<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+												{game.score !== null && game.score !== undefined && (
+													<div
+														style={{
+															display: 'flex',
+															alignItems: 'center',
+															gap: 8,
+															fontSize: 14,
+														}}
+													>
+														<Star style={{ width: 14, height: 14, color: '#f59e0b' }} />
+														<span style={{ color: '#9ca3af' }}>
+															{game.score}%
+														</span>
+													</div>
+												)}
+												{game.price !== null && game.price !== undefined && (
+													<div style={{ fontSize: 14, color: '#9ca3af' }}>
+														${game.price}
+													</div>
+												)}
+												{game.genres && (
+													<div
+														style={{
+															display: 'flex',
+															flex: 'wrap',
+															gap: 6,
+															marginTop: 8,
+														}}
+													>
+														{typeof game.genres === 'string'
+															? game.genres.split(',').slice(0, 2).map((g) => (
+																	<Badge
+																		key={g.trim()}
+																		variant='outline'
+																		style={{ fontSize: 11 }}
+																	>
+																		{g.trim()}
+																	</Badge>
+																	))
+															: null}
+													</div>
+												)}
+											</div>
+										</CardContent>
+									</Card>
+								))
+							) : (
+								<Card style={{ minWidth: '100%' }}>
+									<CardContent className='flex items-center justify-center py-12'>
+										<p style={{ color: '#9ca3af' }}>
+											No recommendations available
+										</p>
+									</CardContent>
+								</Card>
+							)}
+						</div>
+					</div>
+
+					{/* Same Developer Carousel */}
+					<div>
+						<h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 16 }}>
+							{(() => {
+								const devs = game.developer ? game.developer.split(',').map(d => d.trim()).filter(Boolean) : [];
+								if (devs.length === 0) return 'More from this developer';
+								if (devs.length === 1) return `More from ${devs[0]}`;
+								if (devs.length === 2) return `More from ${devs[0]} and ${devs[1]}`;
+								return `More from ${devs.slice(0, -1).join(', ')}, and ${devs.at(-1)}`;
+							})()}
+						</h3>
+						<div
+							style={{
+								display: 'flex',
+								gap: 12,
+								overflowX: 'auto',
+								overflowY: 'visible',
+								paddingBottom: 12,
+								paddingTop: 8,
+								scrollBehavior: 'smooth',
+								WebkitOverflowScrolling: 'touch',
+							}}>
+							{recsLoading ? (
+								<Card style={{ minWidth: '100%' }}>
+									<CardContent className='flex items-center justify-center py-12'>
+										<p style={{ color: '#9ca3af' }}>
+											Loading recommendations...
+										</p>
+									</CardContent>
+								</Card>
+							) : developerGames.length > 0 ? (
+								developerGames.slice(0, 10).map((game) => (
+										<Card
+											key={`${game.id}-dev`}
+											style={{
+												minWidth: 250,
+												display: 'flex',
+												flexDirection: 'column',
+												background: '#1a1f24',
+												border: '1px solid #2a3138',
+												cursor: 'pointer',
+												transition: 'all 0.3s ease',
+											}}
+											onClick={() => navigate(`/games/${game.id}`)}
+											onMouseEnter={(e) => {
+											e.currentTarget.style.borderColor = '#4f46e5';
+											e.currentTarget.style.transform = 'translateY(-4px)';
+										}}
+										onMouseLeave={(e) => {
+											e.currentTarget.style.borderColor = '#2a3138';
+											e.currentTarget.style.transform = 'translateY(0)';
+										}}>
+										<CardContent style={{ padding: 16, flex: 1 }}>
+											<h4
+												style={{
+													fontSize: 16,
+													fontWeight: 600,
+													marginBottom: 12,
+													display: '-webkit-box',
+													WebkitBoxOrient: 'vertical',
+													WebkitLineClamp: 2,
+													overflow: 'hidden',
+												}}
+											>
+												{game.name}
+											</h4>
+											<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+												{game.score !== null && game.score !== undefined && (
+													<div
+														style={{
+															display: 'flex',
+															alignItems: 'center',
+															gap: 8,
+															fontSize: 14,
+														}}
+													>
+														<Star style={{ width: 14, height: 14, color: '#f59e0b' }} />
+														<span style={{ color: '#9ca3af' }}>
+															{game.score}%
+														</span>
+													</div>
+												)}
+												{game.price !== null && game.price !== undefined && (
+													<div style={{ fontSize: 14, color: '#9ca3af' }}>
+														${game.price}
+													</div>
+												)}
+												{game.genres && (
+													<div
+														style={{
+															display: 'flex',
+															flex: 'wrap',
+															gap: 6,
+															marginTop: 8,
+														}}
+													>
+														{typeof game.genres === 'string'
+															? game.genres.split(',').slice(0, 2).map((g) => (
+																	<Badge
+																		key={g.trim()}
+																		variant='outline'
+																		style={{ fontSize: 11 }}
+																	>
+																		{g.trim()}
+																	</Badge>
+																	))
+															: null}
+													</div>
+												)}
+											</div>
+										</CardContent>
+									</Card>
+								))
+							) : (
+								<Card style={{ minWidth: '100%' }}>
+									<CardContent className='flex items-center justify-center py-12'>
+										<p style={{ color: '#9ca3af' }}>
+											No recommendations available
+										</p>
+									</CardContent>
+								</Card>
+							)}
 						</div>
 					</div>
 				</div>
