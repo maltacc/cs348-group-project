@@ -64,24 +64,13 @@ function parseDate(dateStr?: string | null): string | null {
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i]
 
-      // Filter: Only process if Score rank is not null
-      if (row['Score rank'] === null || row['Score rank'] === undefined) {
-        skipped++
-        continue
-      }
-
       try {
         // Validation
         const appId = Number(row.AppID)
         const name = String(row.Name ?? '').trim()
         const price = Number(row.Price ?? 0)
         const userScore = row['User score'] ? Number(row['User score']) : null
-        if (
-          !appId ||
-          !name ||
-          price < 0 ||
-          (userScore !== null && (userScore < 0 || userScore > 100))
-        ) {
+        if (!appId || !name || price < 0) {
           bad++
           continue
         }
@@ -91,6 +80,19 @@ function parseDate(dateStr?: string | null): string | null {
         const negative = Number(row.Negative ?? 0)
         const playerSentiment =
           positive + negative > 0 ? positive / (positive + negative) : null
+
+        // Calculate score from positive/negative ratings (0-100 scale)
+        const calculatedScore =
+          playerSentiment !== null ? Math.round(playerSentiment * 100) : null
+
+        // Use calculated score as fallback if no user score exists
+        const finalScore = userScore ?? calculatedScore
+
+        // Skip only if we have no score at all
+        if (finalScore === null) {
+          skipped++
+          continue
+        }
 
         const releaseDate = parseDate(row['Release date'])
 
@@ -110,7 +112,7 @@ function parseDate(dateStr?: string | null): string | null {
             name,
             price,
             row['Header image'] ?? null,
-            userScore,
+            finalScore,
             row['About the game'] ?? null,
           ]
         )
@@ -224,7 +226,7 @@ function parseDate(dateStr?: string | null): string | null {
     }
 
     console.log(
-      `\nDone! Successfully inserted ${ok} games, rejected ${bad}, skipped ${skipped} (no score rank).`
+      `\nDone! Successfully inserted ${ok} games, rejected ${bad}, skipped ${skipped} (no score data).`
     )
   } catch (error: any) {
     console.error(`\nError occurred:`, error.message)
