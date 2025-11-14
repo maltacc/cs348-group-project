@@ -13,6 +13,7 @@
     "db:migrate:prod": "bash ../scripts/run-migrations-prod.sh",
     "db:setup:prod": "npm run db:drop && npm run db:migrate:prod",
     "db:setup:sample": "npm run db:drop && npm run db:migrate:sample",
+    "get-data": "tsx src/getData.ts",
     "ingest": "tsx src/ingest.ts"
   },
   "keywords": [],
