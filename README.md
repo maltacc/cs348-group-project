@@ -80,34 +80,24 @@ Still in `steam-app/server`, **unzip** the **raw.json.zip** file and ingest it i
 npm run ingest
 ```
 
-To verify you have set up the database correctly, run `mysql -uroot -p` and hit enter again (empty password). Run `use steam_prod/steam; show tables; describe games;` and you should get the following output:
+To verify we have set up the database correctly, run `mysql -uroot -p` and hit enter again (empty password). Run `use steam_prod; show tables;` then run the following queries:
+
+- `SELECT COUNT(*) FROM GAMES;` should return 63507 rows
+- `SELECT app_id, name, price, score FROM games LIMIT 5;` should return 
 
 ```
-Database changed
-+----------------------+
-| Tables_in_steam_prod |
-+----------------------+
-| descriptors          |
-| developers           |
-| game_details         |
-| game_developer       |
-| game_scores          |
-| games                |
-+----------------------+
-6 rows in set (0.01 sec)
-
-+--------------+---------------+------+-----+---------+-------+
-| Field        | Type          | Null | Key | Default | Extra |
-+--------------+---------------+------+-----+---------+-------+
-| app_id       | bigint        | NO   | PRI | NULL    |       |
-| name         | varchar(255)  | NO   |     | NULL    |       |
-| price        | decimal(10,2) | NO   | MUL | NULL    |       |
-| header_image | text          | YES  |     | NULL    |       |
-| score        | int           | YES  |     | NULL    |       |
-| description  | text          | YES  |     | NULL    |       |
-+--------------+---------------+------+-----+---------+-------+
-6 rows in set (0.01 sec)
++--------+---------------------------+-------+-------+
+| app_id | name                      | price | score |
++--------+---------------------------+-------+-------+
+|     10 | Counter-Strike            |  9.99 |    97 |
+|     20 | Team Fortress Classic     |  4.99 |    86 |
+|     30 | Day of Defeat             |  4.99 |    90 |
+|     40 | Deathmatch Classic        |  4.99 |    82 |
+|     50 | Half-Life: Opposing Force |  4.99 |    95 |
++--------+---------------------------+-------+-------+
+5 rows in set (0.002 sec)
 ```
+- The schema should match the schema of the sample database
 
 ## For the Sample Database
 
