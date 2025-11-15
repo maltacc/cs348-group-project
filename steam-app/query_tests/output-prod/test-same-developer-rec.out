@@ -1,2 +1,14 @@
-name	score	price
-Hentai Case Opening	63	0.99
++-----------------------------+-------+-------+
+| name                        | score | price |
++-----------------------------+-------+-------+
+| Portal 2                    |    99 |  9.99 |
+| Half-Life: Alyx             |    98 | 59.99 |
+| Portal                      |    98 |  9.99 |
+| Half-Life 2: Episode Two    |    97 |  7.99 |
+| Defense Grid: The Awakening |    97 |  9.99 |
+| Half-Life                   |    97 |  9.99 |
+| Left 4 Dead 2               |    97 |  9.99 |
+| Counter-Strike              |    97 |  9.99 |
+| Half-Life 2                 |    97 |  9.99 |
+| Counter-Strike: Source      |    96 |  9.99 |
++-----------------------------+-------+-------+

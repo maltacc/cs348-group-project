@@ -1,9 +1,14 @@
-name	score	genres
-Hentai Strip Shot	100	Casual,Indie,Strategy
-K Station	100	Adventure,Casual,Indie
-Meltys Quest	97	RPG
-HOT FIT!	80	Adventure
-Ancestors Legacy Free Peasant Edition	77	Strategy
-Discouraged Workers	59	Adventure,Indie
-Undress Tournament	57	Adventure,Casual,Free to Play,RPG
-Booty Calls	46	Casual,Free to Play,Indie,RPG,Simulation,Strategy
++---------+-------------------------------------------------------+-------+-------+--------------------------------------+
+| id      | name                                                  | score | price | genres                               |
++---------+-------------------------------------------------------+-------+-------+--------------------------------------+
+| 1739160 | ――Chigau!!!                                           |   100 | 14.99 | Adventure,Casual,Indie               |
+| 1673650 | ¡Arre Unicornio!                                      |   100 |  2.99 | Casual,Indie,Strategy,Early Access   |
+|  451590 | ¡Zombies! : Faulty Towers                             |   100 |  1.99 | Casual,Strategy                      |
+| 1870660 | (Dis)assemble                                         |   100 |  7.99 | Casual,Strategy                      |
+| 2534950 | [케인] 돈통 쌓기                                      |   100 |  0.00 | RPG,Simulation                       |
+| 1675150 | 「３」                                                |   100 |  4.99 | Adventure,Indie                      |
+| 2264930 | 『LACKGIRL I - Astra inclinant, sed non obligant.』   |   100 | 16.99 | Adventure,Indie                      |
+| 1599130 | #tacticalunderground arcade                           |   100 |  0.00 | Action,Adventure,Free to Play,Sports |
+| 1932230 | 100 hidden hares                                      |   100 |  1.99 | Adventure,Casual,Indie               |
+| 2374420 | 100 Steps                                             |   100 |  9.99 | Adventure,Indie,Strategy             |
++---------+-------------------------------------------------------+-------+-------+--------------------------------------+

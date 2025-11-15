@@ -1,9 +1,10 @@
-+--------------------+-------+
-| name               | score |
-+--------------------+-------+
-| ELDEN RING         |    90 |
-| Dota 2             |    83 |
-| Grand Theft Auto V |    79 |
-| Apex Legends       |    78 |
-| Cyberpunk 2077     |    71 |
-+--------------------+-------+
++---------+--------------------------+-------+-------+----------------------------------+
+| id      | name                     | score | price | genres                           |
++---------+--------------------------+-------+-------+----------------------------------+
+|  292030 | The Witcher 3: Wild Hunt |    94 | 39.99 | RPG,Open World,Adventure         |
+|  413150 | Stardew Valley           |    93 | 14.99 | Simulation,RPG,Indie,Farming     |
+| 1245620 | ELDEN RING               |    90 | 59.99 | RPG,Action,Souls-like,Open World |
+|     570 | Dota 2                   |    83 |  0.00 | MOBA,Strategy,Action             |
+|  271590 | Grand Theft Auto V       |    79 | 29.99 | Action,Open World,Adventure      |
+| 1091500 | Cyberpunk 2077           |    71 | 59.99 | RPG,Action,Open World,Sci-Fi     |
++---------+--------------------------+-------+-------+----------------------------------+

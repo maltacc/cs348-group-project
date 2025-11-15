@@ -1,2 +1,14 @@
-name	genres	price	score
-Meltys Quest	RPG	19.99	97
++--------+-------------------------------+-------+----------------------------------------+-------+
+| id     | name                          | price | genres                                 | score |
++--------+-------------------------------+-------+----------------------------------------+-------+
+|  47540 | Puzzle Quest 2                |  0.00 | RPG,Casual                             |    83 |
+|  57000 | NyxQuest: Kindred Spirits     |  2.99 | Action,Adventure                       |    89 |
+| 115210 | American Conquest             |  4.99 | Strategy                               |    67 |
+| 115220 | American Conquest: Fight Back |  4.99 | Strategy                               |    69 |
+| 201230 | EverQuest II                  |  0.00 | Free to Play,Massively Multiplayer,RPG |    78 |
+| 205710 | EverQuest                     |  0.00 | Free to Play,Massively Multiplayer,RPG |    80 |
+| 230050 | DLC Quest                     |  2.99 | Indie                                  |    88 |
+| 234330 | MARVEL Puzzle Quest           |  0.00 | Casual,Free to Play,RPG                |    70 |
+| 263820 | EvilQuest                     |  1.99 | Action,Adventure,Indie,RPG             |    88 |
+| 270050 | Quest of Dungeons             |  4.99 | Adventure,Indie,RPG                    |    76 |
++--------+-------------------------------+-------+----------------------------------------+-------+

@@ -1,3 +1,6 @@
-side	name	release_date	price	genres	developers	score	price_delta	score_delta
-left	Meltys Quest	2017-10-24	19.99	RPG	Remtairy	97	19.99	20
-right	Ancestors Legacy Free Peasant Edition	2018-02-06	0.00	Strategy	Destructive Creations	77	-19.99	-20
++-------+--------------+--------------+-------+---------------------------+-------------------+-------+-------------+-------------+
+| side  | name         | release_date | price | genres                    | developer         | score | price_delta | score_delta |
++-------+--------------+--------------+-------+---------------------------+-------------------+-------+-------------+-------------+
+| left  | ELDEN RING   | 2022-02-24   | 59.99 | Action,RPG                | FromSoftware Inc. |    90 |       46.00 |          -7 |
+| right | Phasmophobia | 2020-09-18   | 13.99 | Action,Indie,Early Access | Kinetic Games     |    97 |      -46.00 |           7 |
++-------+--------------+--------------+-------+---------------------------+-------------------+-------+-------------+-------------+

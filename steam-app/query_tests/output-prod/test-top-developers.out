@@ -1,3 +1,14 @@
-developers	avg_score
-RewindApp	64.0000
-Playtouch	60.5000
++---------------------+-----------+------------+
+| developer           | avg_score | game_count |
++---------------------+-----------+------------+
+| Puzzles By Joe      |  100.0000 |          8 |
+| Super Powerup Games |  100.0000 |          7 |
+| Pitigamedev         |  100.0000 |          6 |
+| PSS                 |  100.0000 |          6 |
+| LI YIN              |  100.0000 |          5 |
+| Nolo                |  100.0000 |          5 |
+| Alex Loman          |  100.0000 |          4 |
+| Brøderbund          |  100.0000 |          4 |
+| Derin               |  100.0000 |          4 |
+| Digital Dream Labs  |  100.0000 |          4 |
++---------------------+-----------+------------+

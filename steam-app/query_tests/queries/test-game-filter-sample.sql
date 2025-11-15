@@ -1,4 +1,10 @@
-SELECT name, genres, price, score
-FROM games
-WHERE name like '%counter-strike 2%'
+SELECT 
+  g.app_id as id,
+  g.name, 
+  g.price, 
+  d.genres as genres, 
+  g.score
+FROM games g
+LEFT JOIN descriptors d ON g.app_id = d.app_id
+WHERE name LIKE '%counter-strike 2%'
   AND price < 20.00;
