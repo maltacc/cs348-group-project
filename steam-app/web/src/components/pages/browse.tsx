@@ -1,338 +1,375 @@
-import { Input } from '@/components/ui/input';
-import { ChevronDown, Star } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
-import { GENRES, type Game } from '@/types';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input'
+import { ChevronDown, Star } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+import { GENRES, type Game } from '@/types'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import {
-	Table,
-	TableBody,
-	TableCell,
-	TableFooter,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from '@/components/ui/table';
-import { Slider } from '@/components/ui/slider';
-import { MultiSelect } from '@/components/multi-select';
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Slider } from '@/components/ui/slider'
+import { MultiSelect } from '@/components/multi-select'
 import {
-	Select,
-	SelectContent,
-	SelectGroup,
-	SelectItem,
-	SelectTrigger,
-} from '@/components/ui/select';
-import { Link } from 'react-router-dom';
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+} from '@/components/ui/select'
+import { Link } from 'react-router-dom'
+import { Checkbox } from '@/components/ui/checkbox'
 
 export default function BrowsePage() {
-	const [q, setQ] = useState('');
-	const [offset, setOffset] = useState(0);
-	const [price, setPrice] = useState<number | null>(100);
-	const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
-	const [showFilters, setShowFilters] = useState(true);
-	const [limit, setLimit] = useState(20);
+  const [q, setQ] = useState('')
+  const [offset, setOffset] = useState(0)
+  const [price, setPrice] = useState<number | null>(100)
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([])
+  const [showFilters, setShowFilters] = useState(true)
+  const [limit, setLimit] = useState(20)
+  const [useFulltextSearch, setUseFulltextSearch] = useState(false)
 
-	// Applied filters (only updated when Search button is clicked)
-	const [appliedPrice, setAppliedPrice] = useState<number | null>(100);
-	const [appliedGenres, setAppliedGenres] = useState<string[]>([]);
-	const [filteredGames, setFilteredGames] = useState<Game[]>([]);
+  // Applied filters (only updated when Search button is clicked)
+  const [appliedPrice, setAppliedPrice] = useState<number | null>(100)
+  const [appliedGenres, setAppliedGenres] = useState<string[]>([])
+  const [filteredGames, setFilteredGames] = useState<Game[]>([])
 
-	const renderPriceText = (price: number | null) => {
-		switch (price) {
-			case 0:
-				return <span>Free</span>;
-			case null:
-				return <span>All Prices</span>;
-			default:
-				return <span>Under ${price}</span>;
-		}
-	};
+  const renderPriceText = (price: number | null) => {
+    switch (price) {
+      case 0:
+        return <span>Free</span>
+      case null:
+        return <span>All Prices</span>
+      default:
+        return <span>Under ${price}</span>
+    }
+  }
 
-	// Fetch games with current parameters
-	const fetchGames = useCallback(() => {
-		const c = new AbortController();
-		const params = new URLSearchParams({
-			limit: String(limit),
-			offset: String(offset),
-			q: q,
-		});
+  // Fetch games with current parameters
+  const fetchGames = useCallback(() => {
+    const c = new AbortController()
+    const params = new URLSearchParams({
+      limit: String(limit),
+      offset: String(offset),
+      q: q,
+    })
 
-		if (appliedPrice !== null) {
-			params.append('price', String(appliedPrice));
-		}
+    if (appliedPrice !== null) {
+      params.append('price', String(appliedPrice))
+    }
 
-		params.append('genres', appliedGenres.join(','));
-		console.log('params', params.toString());
+    params.append('genres', appliedGenres.join(','))
 
-		fetch(`/api/games?${params.toString()}`, { signal: c.signal })
-			.then((r) => {
-				if (!r.ok) {
-					// Check if response is an error status (400, 404, 500, etc.)
-					throw new Error(`HTTP error! status: ${r.status}`);
-				}
-				return r.json();
-			})
-			.then((r) => {
-				setFilteredGames(r);
-			})
-			.catch((error) => {
-				if (error.name === 'AbortError') {
-					console.log('Fetch aborted');
-				} else {
-					console.error('Error fetching games:', error);
-					setFilteredGames([]); // Clear results on error
-				}
-			});
-		return () => c.abort();
-	}, [limit, offset, q, appliedPrice, appliedGenres]);
+    // Add fulltext search parameter if enabled
+    if (useFulltextSearch) {
+      params.append('fulltext', 'true')
+    }
 
-	// Apply filters and fetch
-	const handleSearchClick = () => {
-		setAppliedPrice(price);
-		setAppliedGenres(selectedGenres);
-		setOffset(0);
-	};
+    console.log('params', params.toString())
 
-	// Debounced search input effect
-	useEffect(() => {
-		const timer = setTimeout(() => {
-			fetchGames();
-		}, 500);
+    fetch(`/api/games?${params.toString()}`, { signal: c.signal })
+      .then((r) => {
+        if (!r.ok) {
+          // Check if response is an error status (400, 404, 500, etc.)
+          throw new Error(`HTTP error! status: ${r.status}`)
+        }
+        return r.json()
+      })
+      .then((r) => {
+        setFilteredGames(r)
+      })
+      .catch((error) => {
+        if (error.name === 'AbortError') {
+          console.log('Fetch aborted')
+        } else {
+          console.error('Error fetching games:', error)
+          setFilteredGames([]) // Clear results on error
+        }
+      })
+    return () => c.abort()
+  }, [limit, offset, q, appliedPrice, appliedGenres, useFulltextSearch])
 
-		return () => clearTimeout(timer);
-	}, [q]);
+  // Apply filters and fetch
+  const handleSearchClick = () => {
+    setAppliedPrice(price)
+    setAppliedGenres(selectedGenres)
+    setOffset(0)
+  }
 
-	// Fetch when offset or limit changes
-	useEffect(() => {
-		fetchGames();
-	}, [offset, limit]);
+  // Debounced search input effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchGames()
+    }, 500)
 
-	// Fetch when applied filters change
-	useEffect(() => {
-		fetchGames();
-	}, [appliedPrice, appliedGenres]);
+    return () => clearTimeout(timer)
+  }, [q])
 
-	return (
-		<div
-			style={{
-				fontFamily: 'system-ui',
-				background: '#121417',
-				color: '#e9edf1',
-				flex: 1,
-				padding: 16,
-				display: 'flex',
-				flexDirection: 'column',
-				gap: 16,
-			}}>
-			<div
-				style={{
-					width: '100%',
-					display: 'flex',
-					flexDirection: 'column',
-					gap: 16,
-					border: '1px solid #2a3138',
-					background: '#1a1f24',
-					borderRadius: 10,
-				}}>
-				<div
-					style={{
-						display: 'flex',
-						padding: 12,
-						gap: 12,
-					}}>
-					<div className='flex flex-col gap-2 flex-1 min-w-[260px]'>
-						<Label style={{ fontSize: 16, opacity: 0.8 }} htmlFor='game-search'>
-							Search Games
-						</Label>
-						<Input
-							id='game-search'
-							type='search'
-							placeholder='Search'
-							value={q}
-							onChange={(e) => {
-								setQ(e.target.value);
-								setOffset(0);
-							}}
-						/>
-					</div>
+  // Fetch when offset or limit changes
+  useEffect(() => {
+    fetchGames()
+  }, [offset, limit])
 
-					<div
-						style={{
-							marginLeft: 'auto',
-							display: 'flex',
-							alignItems: 'flex-end',
-						}}>
-						<Button onClick={() => setShowFilters(!showFilters)}>
-							Filters
-							<ChevronDown
-								strokeWidth={2}
-								size={16}
-								style={{
-									transition: 'transform 0.2s',
-									transform: showFilters ? 'rotate(180deg)' : 'rotate(0deg)',
-								}}
-							/>
-						</Button>
-					</div>
-				</div>
+  // Fetch when applied filters change
+  useEffect(() => {
+    fetchGames()
+  }, [appliedPrice, appliedGenres])
 
-				{showFilters && (
-					<div
-						style={{
-							padding: 16,
-							display: 'flex',
-							gap: 16,
-							flexWrap: 'wrap',
-						}}>
-						<div className='flex flex-col gap-3'>
-							<Label htmlFor='slider'>Price Range</Label>
-							<Slider
-								id='slider'
-								min={0}
-								max={201}
-								value={price === null ? [201] : [price]}
-								onValueChange={(value) => {
-									if (value[0] === 201) {
-										// "All Prices" option
-										setPrice(null);
-									} else {
-										setPrice(value[0]);
-									}
-								}}
-								style={{
-									width: 220,
-									accentColor: '#a78bfa',
-									cursor: 'pointer',
-								}}
-							/>
-							<div className='flex items-center justify-between text-muted-foreground text-sm'>
-								{renderPriceText(price)}
-							</div>
-						</div>
-						<MultiSelect
-							className='w-6'
-							placeholder='Select Genres'
-							options={GENRES.map((g) => ({ label: g, value: g }))}
-							onValueChange={setSelectedGenres}
-							defaultValue={selectedGenres}
-						/>
-						<Button onClick={handleSearchClick}>Apply Filters</Button>
-					</div>
-				)}
-			</div>
+  return (
+    <div
+      style={{
+        fontFamily: 'system-ui',
+        background: '#121417',
+        color: '#e9edf1',
+        flex: 1,
+        padding: 16,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 16,
+      }}
+    >
+      <div
+        style={{
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16,
+          border: '1px solid #2a3138',
+          background: '#1a1f24',
+          borderRadius: 10,
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            padding: 12,
+            gap: 12,
+          }}
+        >
+          <div className="flex flex-col gap-2 flex-1 min-w-[260px]">
+            <Label style={{ fontSize: 16, opacity: 0.8 }} htmlFor="game-search">
+              Search Games
+            </Label>
+            <Input
+              id="game-search"
+              type="search"
+              placeholder="Search"
+              value={q}
+              onChange={(e) => {
+                setQ(e.target.value)
+                setOffset(0)
+              }}
+            />
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="fulltext-search"
+                checked={useFulltextSearch}
+                onCheckedChange={(checked) => {
+                  setUseFulltextSearch(checked === true)
+                  setOffset(0)
+                }}
+              />
+              <Label
+                htmlFor="fulltext-search"
+                className="text-sm font-normal cursor-pointer"
+                style={{ opacity: 0.9 }}
+              >
+                Use advanced search (full-text search across titles &
+                descriptions)
+              </Label>
+            </div>
+          </div>
 
-			<div
-				style={{
-					background: '#1a1f24',
-					border: '1px solid #2a3138',
-					borderRadius: 10,
-					overflow: 'hidden',
-				}}>
-				<Table>
-					<TableHeader>
-						<TableRow>
-							<TableHead>Name</TableHead>
-							<TableHead>Price</TableHead>
-							<TableHead>Genres</TableHead>
-							<TableHead>Rating</TableHead>
-						</TableRow>
-					</TableHeader>
-					<TableBody>
-						{filteredGames &&
-							filteredGames.map((r) => (
-								<TableRow
-									key={r.id}
-									// style={{
-									// 	background: i % 2 ? "#171c21" : "transparent",
-									// 	borderTop: "1px solid #2a3138",
-									// }}
-								>
-									<TableCell>
-										<Link to={`/games/${r.id}`} className='hover:underline'>
-											{r.name}
-										</Link>
-									</TableCell>
-									<TableCell>
-										{r.price == null ? '' : `$${Number(r.price).toFixed(2)}`}
-									</TableCell>
-									<TableCell>
-										{r.genres ? (
-											<div
-												style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-												{r.genres.split(',').map((genre) => (
-													<Badge key={genre.trim()} variant='outline'>
-														{genre.trim()}
-													</Badge>
-												))}
-											</div>
-										) : (
-											''
-										)}
-									</TableCell>
-									<TableCell>
-										{r.score ? (
-											<div
-												style={{
-													display: 'flex',
-													alignItems: 'center',
-													gap: 6,
-												}}>
-												<Star
-													style={{ width: 14, height: 14, color: '#f59e0b' }}
-												/>
-												<span>{r.score}%</span>
-											</div>
-										) : (
-											''
-										)}
-									</TableCell>
-								</TableRow>
-							))}
-					</TableBody>
-					<TableFooter>
-						<TableRow>
-							<TableCell colSpan={4} className='p-2'>
-								<div className='w-full flex items-center justify-between'>
-									<Select onValueChange={(value) => setLimit(Number(value))}>
-										<SelectTrigger>
-											<span>{`Show ${limit} results`}</span>
-										</SelectTrigger>
-										<SelectContent>
-											<SelectGroup>
-												<SelectItem value='10'>10</SelectItem>
-												<SelectItem value='20'>20</SelectItem>
-												<SelectItem value='50'>50</SelectItem>
-												<SelectItem value='100'>100</SelectItem>
-											</SelectGroup>
-										</SelectContent>
-									</Select>
+          <div
+            style={{
+              marginLeft: 'auto',
+              display: 'flex',
+              alignItems: 'flex-end',
+            }}
+          >
+            <Button onClick={() => setShowFilters(!showFilters)}>
+              Filters
+              <ChevronDown
+                strokeWidth={2}
+                size={16}
+                style={{
+                  transition: 'transform 0.2s',
+                  transform: showFilters ? 'rotate(180deg)' : 'rotate(0deg)',
+                }}
+              />
+            </Button>
+          </div>
+        </div>
 
-									<div
-										style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-										<span className='center mr-2'>
-											{offset + 1} - {offset + limit}
-										</span>
-										<Button
-											onClick={() => {
-												setOffset(Math.max(0, offset - limit));
-											}}
-											disabled={offset === 0}>
-											Prev
-										</Button>
-										<Button
-											onClick={() => {
-												setOffset(offset + limit);
-											}}>
-											Next
-										</Button>
-									</div>
-								</div>
-							</TableCell>
-						</TableRow>
-					</TableFooter>
-				</Table>
-			</div>
-		</div>
-	);
+        {showFilters && (
+          <div
+            style={{
+              padding: 16,
+              display: 'flex',
+              gap: 16,
+              flexWrap: 'wrap',
+            }}
+          >
+            <div className="flex flex-col gap-3">
+              <Label htmlFor="slider">Price Range</Label>
+              <Slider
+                id="slider"
+                min={0}
+                max={201}
+                value={price === null ? [201] : [price]}
+                onValueChange={(value) => {
+                  if (value[0] === 201) {
+                    // "All Prices" option
+                    setPrice(null)
+                  } else {
+                    setPrice(value[0])
+                  }
+                }}
+                style={{
+                  width: 220,
+                  accentColor: '#a78bfa',
+                  cursor: 'pointer',
+                }}
+              />
+              <div className="flex items-center justify-between text-muted-foreground text-sm">
+                {renderPriceText(price)}
+              </div>
+            </div>
+            <MultiSelect
+              className="w-6"
+              placeholder="Select Genres"
+              options={GENRES.map((g) => ({ label: g, value: g }))}
+              onValueChange={setSelectedGenres}
+              defaultValue={selectedGenres}
+            />
+            <Button onClick={handleSearchClick}>Apply Filters</Button>
+          </div>
+        )}
+      </div>
+
+      <div
+        style={{
+          background: '#1a1f24',
+          border: '1px solid #2a3138',
+          borderRadius: 10,
+          overflow: 'hidden',
+        }}
+      >
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Price</TableHead>
+              <TableHead>Genres</TableHead>
+              <TableHead>Rating</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredGames &&
+              filteredGames.map((r) => (
+                <TableRow
+                  key={r.id}
+                  // style={{
+                  // 	background: i % 2 ? "#171c21" : "transparent",
+                  // 	borderTop: "1px solid #2a3138",
+                  // }}
+                >
+                  <TableCell>
+                    <Link to={`/games/${r.id}`} className="hover:underline">
+                      {r.name}
+                    </Link>
+                  </TableCell>
+                  <TableCell>
+                    {r.price == null ? '' : `$${Number(r.price).toFixed(2)}`}
+                  </TableCell>
+                  <TableCell>
+                    {r.genres ? (
+                      <div
+                        style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}
+                      >
+                        {r.genres.split(',').map((genre) => (
+                          <Badge key={genre.trim()} variant="outline">
+                            {genre.trim()}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      ''
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {r.score ? (
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                        }}
+                      >
+                        <Star
+                          style={{ width: 14, height: 14, color: '#f59e0b' }}
+                        />
+                        <span>{r.score}%</span>
+                      </div>
+                    ) : (
+                      ''
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+          </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={4} className="p-2">
+                <div className="w-full flex items-center justify-between">
+                  <Select onValueChange={(value) => setLimit(Number(value))}>
+                    <SelectTrigger>
+                      <span>{`Show ${limit} results`}</span>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+
+                  <div
+                    style={{ display: 'flex', gap: 8, alignItems: 'center' }}
+                  >
+                    <span className="center mr-2">
+                      {offset + 1} - {offset + limit}
+                    </span>
+                    <Button
+                      onClick={() => {
+                        setOffset(Math.max(0, offset - limit))
+                      }}
+                      disabled={offset === 0}
+                    >
+                      Prev
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setOffset(offset + limit)
+                      }}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              </TableCell>
+            </TableRow>
+          </TableFooter>
+        </Table>
+      </div>
+    </div>
+  )
 }

@@ -113,7 +113,7 @@ function parseDate(dateStr?: string | null): string | null {
             price,
             row['Header image'] ?? null,
             finalScore,
-            row['About the game'] ?? null,
+            row['About the game'] ?? '',
           ]
         )
 

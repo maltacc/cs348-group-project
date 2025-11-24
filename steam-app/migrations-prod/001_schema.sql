@@ -8,7 +8,7 @@ create table games (
   price          decimal(10,2) not null check (price >= 0),
   header_image   text null,
   score          int null check (score between 0 and 100),
-  description    text null
+  description    text not null
 );
 
 create table game_details (
@@ -56,3 +56,6 @@ create table descriptors (
 
 create index idx_game_details_release on game_details(release_date);
 create index idx_games_price on games(price);
+
+-- fulltext index for search functionality
+alter table games add fulltext ft_games_name_desc (name, description);

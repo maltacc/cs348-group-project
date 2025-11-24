@@ -20,15 +20,48 @@ const QuerySchema = z.object({
   }, z.array(z.string().trim().max(50)).default([])),
   limit: z.coerce.number().int().min(1).max(100).default(20),
   offset: z.coerce.number().int().min(0).default(0),
+  fulltext: z
+    .preprocess((v) => v === 'true' || v === true, z.boolean())
+    .default(false),
 })
 
 router.get('/', async (req, res) => {
   const p = QuerySchema.safeParse(req.query)
   if (!p.success) return res.status(400).json({ error: p.error.flatten() })
-  const { q, price, genres, limit, offset } = p.data
+  const { q, price, genres, limit, offset, fulltext } = p.data
 
-  const conditions = []
   const params: any = { limit, offset }
+
+  // Full-text search mode
+  if (fulltext && q != null) {
+    params.q = q
+
+    const query = `
+      SELECT 
+        g.app_id as id,
+        g.name, 
+        g.price, 
+        d.genres as genres, 
+        g.score,
+        MATCH(g.name, g.description) AGAINST (:q IN NATURAL LANGUAGE MODE) as relevance
+      FROM games g
+      LEFT JOIN descriptors d ON g.app_id = d.app_id
+      WHERE MATCH(g.name, g.description) AGAINST (:q IN NATURAL LANGUAGE MODE) > 0
+      ORDER BY relevance DESC
+      LIMIT :limit OFFSET :offset
+    `
+
+    const [rows] = await pool.query(query, params)
+    const results = (rows as any[]).map((row) => ({
+      ...row,
+      genres: row.genres ?? '',
+    }))
+
+    return res.json(results)
+  }
+
+  // Regular search mode (LIKE)
+  const conditions = []
 
   if (q != null) {
     conditions.push('(g.name like :q)')
@@ -216,6 +249,107 @@ router.get('/:id/recommendations/developer', async (req, res) => {
     res.json(rows)
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch developer recommendations' })
+  }
+})
+
+// Get advanced similar games (multi-factor similarity)
+router.get('/:id/recommendations/similar', async (req, res) => {
+  const gameId = req.params.id
+
+  try {
+    // Step 1: Fetch source game data
+    const sourceQuery = `
+      SELECT 
+        g.description,
+        g.score,
+        g.price,
+        SUBSTRING_INDEX(d.genres, ',', 1) as primary_genre
+      FROM games g
+      LEFT JOIN descriptors d ON d.app_id = g.app_id
+      WHERE g.app_id = :gameId
+      LIMIT 1
+    `
+
+    const [sourceRows] = await pool.query(sourceQuery, { gameId })
+    const sourceGame = (sourceRows as any[])[0]
+
+    if (!sourceGame) {
+      return res.status(404).json({ error: 'Source game not found' })
+    }
+
+    const {
+      description: sourceDescription,
+      score: sourceScore,
+      price: sourcePrice,
+      primary_genre: sourcePrimaryGenre,
+    } = sourceGame
+
+    // Step 2: Find similar games using multi-factor scoring
+    const similarityQuery = `
+      SELECT
+        g2.app_id as id,
+        g2.name,
+        g2.price,
+        g2.score,
+        d2.genres,
+        COUNT(DISTINCT CASE WHEN gd1.developer_id IS NOT NULL
+                            THEN gd2.developer_id END) as shared_devs,
+        CASE
+          WHEN SUBSTRING_INDEX(d2.genres, ',', 1) = :sourcePrimaryGenre
+          THEN 1 ELSE 0
+        END as same_primary_genre,
+        COALESCE(ABS(g2.score - :sourceScore), 999) as score_diff,
+        COALESCE(ABS(g2.price - :sourcePrice), 999) as price_diff,
+        COALESCE(
+          MATCH(g2.description) AGAINST (:sourceDescription IN NATURAL LANGUAGE MODE),
+          0
+        ) as desc_similarity
+      FROM games g2
+      LEFT JOIN descriptors d2
+        ON d2.app_id = g2.app_id
+      LEFT JOIN game_developer gd2
+        ON gd2.app_id = g2.app_id
+      LEFT JOIN game_developer gd1
+        ON gd1.developer_id = gd2.developer_id
+       AND gd1.app_id = :gameId
+      WHERE g2.app_id <> :gameId
+      GROUP BY
+        g2.app_id,
+        g2.name,
+        g2.price,
+        g2.score,
+        d2.genres,
+        same_primary_genre,
+        score_diff,
+        price_diff,
+        desc_similarity
+      ORDER BY
+        shared_devs DESC,
+        same_primary_genre DESC,
+        desc_similarity DESC,
+        score_diff ASC,
+        price_diff ASC
+      LIMIT 10
+    `
+
+    const params = {
+      gameId,
+      sourceDescription: sourceDescription || '',
+      sourceScore: sourceScore || 0,
+      sourcePrice: sourcePrice || 0,
+      sourcePrimaryGenre: sourcePrimaryGenre || '',
+    }
+
+    const [rows] = await pool.query(similarityQuery, params)
+    const results = (rows as any[]).map((row) => ({
+      ...row,
+      genres: row.genres ?? '',
+    }))
+
+    res.json(results)
+  } catch (error) {
+    console.error('Error fetching similar games:', error)
+    res.status(500).json({ error: 'Failed to fetch similar games' })
   }
 })
 
