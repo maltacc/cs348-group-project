@@ -4,6 +4,7 @@ import { Route, Routes } from 'react-router-dom';
 import BrowsePage from './components/pages/browse';
 import Navbar from './components/navbar';
 import GameDetailPage from './components/pages/gameDetail';
+import DeveloperDuosPage from './components/pages/developerDuos';
 
 export default function App() {
 	const [q, setQ] = useState('');
@@ -237,6 +238,7 @@ export default function App() {
 				<Route path='/' element={<BrowsePage />} />
 				<Route path='/browse' element={<BrowsePage />} />
 				<Route path='/games/:id' element={<GameDetailPage />} />
+				<Route path='/developer-duos' element={<DeveloperDuosPage />} />
 				<Route path='*' element={<div>404 Not Found</div>} />
 			</Routes>
 		</div>
