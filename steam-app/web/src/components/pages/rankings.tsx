@@ -232,6 +232,7 @@ export default function RankingsPage() {
                     gridTemplateColumns: '1fr auto 1fr',
                     gap: 24,
                     alignItems: 'center',
+                    marginBottom: 24,
                   }}
                 >
                   {/* Game 1 */}
@@ -386,6 +387,40 @@ export default function RankingsPage() {
                         </div>
                       </div>
                     </div>
+                  </button>
+                </div>
+
+                {/* Skip Button */}
+                <div style={{ textAlign: 'center' }}>
+                  <button
+                    onClick={handleNext}
+                    disabled={loading}
+                    style={{
+                      background: 'transparent',
+                      border: '1px solid #2a3138',
+                      color: '#9ca3af',
+                      padding: '10px 24px',
+                      borderRadius: 8,
+                      cursor: loading ? 'not-allowed' : 'pointer',
+                      fontSize: 14,
+                      fontWeight: 500,
+                      transition: 'all 0.2s',
+                      opacity: loading ? 0.5 : 1,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!loading) {
+                        e.currentTarget.style.borderColor = '#f59e0b'
+                        e.currentTarget.style.color = '#f59e0b'
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!loading) {
+                        e.currentTarget.style.borderColor = '#2a3138'
+                        e.currentTarget.style.color = '#9ca3af'
+                      }
+                    }}
+                  >
+                    Skip This Comparison
                   </button>
                 </div>
               </div>
