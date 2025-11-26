@@ -1,10 +1,10 @@
-import { Input } from '@/components/ui/input'
-import { ChevronDown, Star } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
-import { GENRES, type Game } from '@/types'
-import { Label } from '@/components/ui/label'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { Input } from "@/components/ui/input";
+import { ChevronDown, Star } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { GENRES, type Game } from "@/types";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -13,152 +13,152 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { Slider } from '@/components/ui/slider'
-import { MultiSelect } from '@/components/multi-select'
+} from "@/components/ui/table";
+import { Slider } from "@/components/ui/slider";
+import { MultiSelect } from "@/components/multi-select";
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
   SelectTrigger,
-} from '@/components/ui/select'
-import { Link, useSearchParams } from 'react-router-dom'
-import { Checkbox } from '@/components/ui/checkbox'
+} from "@/components/ui/select";
+import { Link, useSearchParams } from "react-router-dom";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function BrowsePage() {
-  const [searchParams] = useSearchParams()
-  const [q, setQ] = useState('')
-  const [offset, setOffset] = useState(0)
-  const [price, setPrice] = useState<number | null>(100)
-  const [selectedGenres, setSelectedGenres] = useState<string[]>([])
-  const [showFilters, setShowFilters] = useState(true)
-  const [limit, setLimit] = useState(20)
-  const [useFulltextSearch, setUseFulltextSearch] = useState(false)
+  const [searchParams] = useSearchParams();
+  const [q, setQ] = useState("");
+  const [offset, setOffset] = useState(0);
+  const [price, setPrice] = useState<number | null>(100);
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [showFilters, setShowFilters] = useState(true);
+  const [limit, setLimit] = useState(20);
+  const [useFulltextSearch, setUseFulltextSearch] = useState(false);
 
   // Applied filters (only updated when Search button is clicked)
-  const [appliedPrice, setAppliedPrice] = useState<number | null>(100)
-  const [appliedGenres, setAppliedGenres] = useState<string[]>([])
-  const [filteredGames, setFilteredGames] = useState<Game[]>([])
+  const [appliedPrice, setAppliedPrice] = useState<number | null>(100);
+  const [appliedGenres, setAppliedGenres] = useState<string[]>([]);
+  const [filteredGames, setFilteredGames] = useState<Game[]>([]);
 
   // Initialize from URL params
   useEffect(() => {
-    const genresParam = searchParams.get('genres')
+    const genresParam = searchParams.get("genres");
     if (genresParam) {
-      const genres = genresParam.split(',').filter(g => g.trim())
-      setSelectedGenres(genres)
-      setAppliedGenres(genres)
+      const genres = genresParam.split(",").filter((g) => g.trim());
+      setSelectedGenres(genres);
+      setAppliedGenres(genres);
     }
-  }, [searchParams])
+  }, [searchParams]);
 
   const renderPriceText = (price: number | null) => {
     switch (price) {
       case 0:
-        return <span>Free</span>
+        return <span>Free</span>;
       case null:
-        return <span>All Prices</span>
+        return <span>All Prices</span>;
       default:
-        return <span>Under ${price}</span>
+        return <span>Under ${price}</span>;
     }
-  }
+  };
 
   // Fetch games with current parameters
   const fetchGames = useCallback(() => {
-    const c = new AbortController()
+    const c = new AbortController();
     const params = new URLSearchParams({
       limit: String(limit),
       offset: String(offset),
       q: q,
-    })
+    });
 
     if (appliedPrice !== null) {
-      params.append('price', String(appliedPrice))
+      params.append("price", String(appliedPrice));
     }
 
-    params.append('genres', appliedGenres.join(','))
+    params.append("genres", appliedGenres.join(","));
 
     // Add fulltext search parameter if enabled
     if (useFulltextSearch) {
-      params.append('fulltext', 'true')
+      params.append("fulltext", "true");
     }
 
-    console.log('params', params.toString())
+    console.log("params", params.toString());
 
     fetch(`/api/games?${params.toString()}`, { signal: c.signal })
       .then((r) => {
         if (!r.ok) {
           // Check if response is an error status (400, 404, 500, etc.)
-          throw new Error(`HTTP error! status: ${r.status}`)
+          throw new Error(`HTTP error! status: ${r.status}`);
         }
-        return r.json()
+        return r.json();
       })
       .then((r) => {
-        setFilteredGames(r)
+        setFilteredGames(r);
       })
       .catch((error) => {
-        if (error.name === 'AbortError') {
-          console.log('Fetch aborted')
+        if (error.name === "AbortError") {
+          console.log("Fetch aborted");
         } else {
-          console.error('Error fetching games:', error)
-          setFilteredGames([]) // Clear results on error
+          console.error("Error fetching games:", error);
+          setFilteredGames([]); // Clear results on error
         }
-      })
-    return () => c.abort()
-  }, [limit, offset, q, appliedPrice, appliedGenres, useFulltextSearch])
+      });
+    return () => c.abort();
+  }, [limit, offset, q, appliedPrice, appliedGenres, useFulltextSearch]);
 
   // Apply filters and fetch
   const handleSearchClick = () => {
-    setAppliedPrice(price)
-    setAppliedGenres([...selectedGenres])
-    setOffset(0)
-  }
+    setAppliedPrice(price);
+    setAppliedGenres([...selectedGenres]);
+    setOffset(0);
+  };
 
   // Debounced search input effect; reset when applied filters change
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchGames()
-    }, 500)
+      fetchGames();
+    }, 500);
 
-    return () => clearTimeout(timer)
-  }, [q, appliedGenres, appliedPrice, useFulltextSearch])
+    return () => clearTimeout(timer);
+  }, [q, appliedGenres, appliedPrice, useFulltextSearch]);
 
   // Fetch when offset or limit changes
   useEffect(() => {
-    fetchGames()
-  }, [offset, limit])
+    fetchGames();
+  }, [offset, limit]);
 
   // Fetch when applied filters change
   useEffect(() => {
-    fetchGames()
-  }, [appliedPrice, appliedGenres])
+    fetchGames();
+  }, [appliedPrice, appliedGenres]);
 
   return (
     <div
       style={{
-        fontFamily: 'system-ui',
-        background: '#121417',
-        color: '#e9edf1',
+        fontFamily: "system-ui",
+        background: "#121417",
+        color: "#e9edf1",
         flex: 1,
         padding: 16,
-        display: 'flex',
-        flexDirection: 'column',
+        display: "flex",
+        flexDirection: "column",
         gap: 16,
       }}
     >
       <div
         style={{
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
           gap: 16,
-          border: '1px solid #2a3138',
-          background: '#1a1f24',
+          border: "1px solid #2a3138",
+          background: "#1a1f24",
           borderRadius: 10,
         }}
       >
         <div
           style={{
-            display: 'flex',
+            display: "flex",
             padding: 12,
             gap: 12,
           }}
@@ -173,8 +173,8 @@ export default function BrowsePage() {
               placeholder="Search"
               value={q}
               onChange={(e) => {
-                setQ(e.target.value)
-                setOffset(0)
+                setQ(e.target.value);
+                setOffset(0);
               }}
             />
             <div className="flex items-center gap-2">
@@ -182,8 +182,8 @@ export default function BrowsePage() {
                 id="fulltext-search"
                 checked={useFulltextSearch}
                 onCheckedChange={(checked) => {
-                  setUseFulltextSearch(checked === true)
-                  setOffset(0)
+                  setUseFulltextSearch(checked === true);
+                  setOffset(0);
                 }}
               />
               <Label
@@ -199,9 +199,9 @@ export default function BrowsePage() {
 
           <div
             style={{
-              marginLeft: 'auto',
-              display: 'flex',
-              alignItems: 'flex-end',
+              marginLeft: "auto",
+              display: "flex",
+              alignItems: "flex-end",
             }}
           >
             <Button onClick={() => setShowFilters(!showFilters)}>
@@ -210,8 +210,8 @@ export default function BrowsePage() {
                 strokeWidth={2}
                 size={16}
                 style={{
-                  transition: 'transform 0.2s',
-                  transform: showFilters ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: "transform 0.2s",
+                  transform: showFilters ? "rotate(180deg)" : "rotate(0deg)",
                 }}
               />
             </Button>
@@ -222,9 +222,9 @@ export default function BrowsePage() {
           <div
             style={{
               padding: 16,
-              display: 'flex',
+              display: "flex",
               gap: 16,
-              flexWrap: 'wrap',
+              flexWrap: "wrap",
             }}
           >
             <div className="flex flex-col gap-3">
@@ -237,15 +237,15 @@ export default function BrowsePage() {
                 onValueChange={(value) => {
                   if (value[0] === 201) {
                     // "All Prices" option
-                    setPrice(null)
+                    setPrice(null);
                   } else {
-                    setPrice(value[0])
+                    setPrice(value[0]);
                   }
                 }}
                 style={{
                   width: 220,
-                  accentColor: '#a78bfa',
-                  cursor: 'pointer',
+                  accentColor: "#a78bfa",
+                  cursor: "pointer",
                 }}
               />
               <div className="flex items-center justify-between text-muted-foreground text-sm">
@@ -260,17 +260,19 @@ export default function BrowsePage() {
               defaultValue={selectedGenres}
               resetOnDefaultValueChange={true}
             />
-            <Button onClick={handleSearchClick}>Apply Filters</Button>
+            <Button onClick={handleSearchClick} className="hover:bg-orange-300">
+              Apply Filters
+            </Button>
           </div>
         )}
       </div>
 
       <div
         style={{
-          background: '#1a1f24',
-          border: '1px solid #2a3138',
+          background: "#1a1f24",
+          border: "1px solid #2a3138",
           borderRadius: 10,
-          overflow: 'hidden',
+          overflow: "hidden",
         }}
       >
         <Table>
@@ -298,39 +300,39 @@ export default function BrowsePage() {
                     </Link>
                   </TableCell>
                   <TableCell>
-                    {r.price == null ? '' : `$${Number(r.price).toFixed(2)}`}
+                    {r.price == null ? "" : `$${Number(r.price).toFixed(2)}`}
                   </TableCell>
                   <TableCell>
                     {r.genres ? (
                       <div
-                        style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}
+                        style={{ display: "flex", flexWrap: "wrap", gap: 6 }}
                       >
-                        {r.genres.split(',').map((genre) => (
+                        {r.genres.split(",").map((genre) => (
                           <Badge key={genre.trim()} variant="outline">
                             {genre.trim()}
                           </Badge>
                         ))}
                       </div>
                     ) : (
-                      ''
+                      ""
                     )}
                   </TableCell>
                   <TableCell>
                     {r.score ? (
                       <div
                         style={{
-                          display: 'flex',
-                          alignItems: 'center',
+                          display: "flex",
+                          alignItems: "center",
                           gap: 6,
                         }}
                       >
                         <Star
-                          style={{ width: 14, height: 14, color: '#f59e0b' }}
+                          style={{ width: 14, height: 14, color: "#f59e0b" }}
                         />
                         <span>{r.score}%</span>
                       </div>
                     ) : (
-                      ''
+                      ""
                     )}
                   </TableCell>
                 </TableRow>
@@ -355,14 +357,14 @@ export default function BrowsePage() {
                   </Select>
 
                   <div
-                    style={{ display: 'flex', gap: 8, alignItems: 'center' }}
+                    style={{ display: "flex", gap: 8, alignItems: "center" }}
                   >
                     <span className="center mr-2">
                       {offset + 1} - {offset + limit}
                     </span>
                     <Button
                       onClick={() => {
-                        setOffset(Math.max(0, offset - limit))
+                        setOffset(Math.max(0, offset - limit));
                       }}
                       disabled={offset === 0}
                     >
@@ -370,7 +372,7 @@ export default function BrowsePage() {
                     </Button>
                     <Button
                       onClick={() => {
-                        setOffset(offset + limit)
+                        setOffset(offset + limit);
                       }}
                     >
                       Next
@@ -383,5 +385,5 @@ export default function BrowsePage() {
         </Table>
       </div>
     </div>
-  )
+  );
 }
