@@ -350,6 +350,22 @@ export default function GameDetailPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Compare Button */}
+              <div style={{ marginTop: 16 }}>
+                  <Link to={`/compare?left=${game.id}`} style={{ width: '100%' }}>
+                    <Button
+                      style={{
+                        width: '100%',
+                        background: '#f59e0b',
+                        color: '#0b0b0b',
+                        borderColor: 'rgba(0,0,0,0.08)',
+                      }}
+                    >
+                      Compare with Other Game
+                    </Button>
+                  </Link>
+              </div>
             </div>
           </div>
         </div>

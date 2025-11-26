@@ -109,6 +109,157 @@ router.get('/', async (req, res) => {
   res.json(results)
 })
 
+// Explore page: multiple discovery sections
+router.get('/explore', async (_req, res) => {
+  try {
+    // Top developers by average score (require at least 3 published games)
+    const topDevQuery = `
+      SELECT
+        dev.developer_id AS developerId,
+        dev.name AS developer,
+        AVG(g.score) AS avgScore,
+        COUNT(*) AS gameCount,
+        SUM(COALESCE(gs.recommendations, 0)) AS totalRecommendations
+      FROM developers dev
+      JOIN game_developer gd ON gd.developer_id = dev.developer_id
+      JOIN games g ON g.app_id = gd.app_id
+      LEFT JOIN game_scores gs ON gs.app_id = g.app_id
+      WHERE g.score IS NOT NULL
+      GROUP BY dev.developer_id, dev.name
+      HAVING COUNT(*) >= 3 AND SUM(COALESCE(gs.recommendations, 0)) >= 500
+      ORDER BY avgScore DESC, gameCount DESC, developer ASC
+      LIMIT 10
+    `
+
+    const [devRows] = await pool.query(topDevQuery)
+
+    // Top genres by average score: aggregate in application code (genres are comma-separated)
+    const [genreSourceRows] = await pool.query(
+      `
+      SELECT g.score, d.genres
+      FROM games g
+      LEFT JOIN descriptors d ON d.app_id = g.app_id
+      WHERE g.score IS NOT NULL AND d.genres IS NOT NULL
+    `
+    )
+
+    const genreMap: Record<
+      string,
+      { total: number; count: number }
+    > = {}
+
+    ;(genreSourceRows as any[]).forEach((r) => {
+      const genresStr = r.genres || ''
+      const score = Number(r.score) || 0
+      genresStr
+        .split(',')
+        .map((g: string) => g.trim())
+        .filter((g: string) => g.length > 0)
+        .forEach((g: string) => {
+          if (!genreMap[g]) genreMap[g] = { total: 0, count: 0 }
+          genreMap[g].total += score
+          genreMap[g].count += 1
+        })
+    })
+
+    const topGenres = Object.keys(genreMap)
+      .map((g) => ({ genre: g, avgScore: genreMap[g].total / genreMap[g].count, gameCount: genreMap[g].count }))
+      .filter((g) => g.gameCount >= 100)
+      .sort((a, b) => {
+        if (b.avgScore !== a.avgScore) return b.avgScore - a.avgScore
+        return b.gameCount - a.gameCount
+      })
+      .slice(0, 10)
+
+    // Best-value paid games (value = score / log(price + 2))
+    const bestValueQuery = `
+      SELECT
+        g.app_id AS id,
+        g.name,
+        g.price,
+        g.score,
+        (g.score / LOG(g.price + 2)) AS valueScore
+      FROM games g
+      JOIN game_details gd ON gd.app_id = g.app_id
+      LEFT JOIN game_scores gs ON gs.app_id = g.app_id
+      WHERE g.price > 0.00 AND g.score IS NOT NULL AND COALESCE(gs.recommendations, 0) >= 500
+      ORDER BY valueScore DESC, g.score DESC, g.price ASC
+      LIMIT 10
+    `
+
+    const [bestRows] = await pool.query(bestValueQuery)
+
+    // Top free high-score games (price = 0) with sufficient recommendations
+    const topFreeQuery = `
+      SELECT
+        g.app_id AS id,
+        g.name,
+        g.price,
+        g.score
+      FROM games g
+      LEFT JOIN game_scores gs ON gs.app_id = g.app_id
+      WHERE g.price = 0.00 AND g.score IS NOT NULL AND COALESCE(gs.recommendations, 0) >= 500
+      ORDER BY g.score DESC, g.name ASC
+      LIMIT 10
+    `
+
+    const [freeRows] = await pool.query(topFreeQuery)
+
+    const topDevelopers = (devRows as any[]).map((r) => ({
+      developerId: r.developerId,
+      developer: r.developer || 'Unknown',
+      avgScore: Number(r.avgScore) || 0,
+      gameCount: Number(r.gameCount) || 0,
+    }))
+
+    const bestValuePaid = (bestRows as any[]).map((r) => ({
+      id: r.id,
+      name: r.name,
+      price: Number(r.price),
+      score: Number(r.score),
+      valueScore: Number(r.valueScore),
+    }))
+
+    const topFreeGames = (freeRows as any[]).map((r) => ({
+      id: r.id,
+      name: r.name,
+      price: Number(r.price),
+      score: Number(r.score),
+    }))
+
+    res.json({ topDevelopers, topGenres, bestValuePaid, topFreeGames })
+  } catch (error) {
+    console.error('Error fetching explore data:', error)
+    res.status(500).json({ error: 'Failed to fetch explore data' })
+  }
+})
+
+// Get games by developer ID
+router.get('/developer/:developerId', async (req, res) => {
+  const { developerId } = req.params
+
+  const query = `
+    SELECT
+      g.app_id as id,
+      g.name,
+      g.score,
+      g.price
+    FROM games g
+    JOIN game_developer gd ON gd.app_id = g.app_id
+    WHERE gd.developer_id = :developerId
+    ORDER BY g.score DESC, g.name ASC
+    LIMIT 50
+  `
+
+  try {
+    const [rows] = await pool.query(query, { developerId })
+    res.json(rows)
+  } catch (error) {
+    console.error('Error fetching developer games:', error)
+    res.status(500).json({ error: 'Failed to fetch developer games' })
+  }
+})
+
 router.get('/:id', async (req, res) => {
   const gameId = req.params.id
 
@@ -419,6 +570,89 @@ router.get('/analytics/developer-duos', async (req, res) => {
   } catch (error) {
     console.error('Error fetching developer duo analytics:', error)
     res.status(500).json({ error: 'Failed to fetch developer duo analytics' })
+  }
+})
+
+router.get('/:id/compare', async (req, res) => {
+  const leftId = Number(req.params.id)
+  const rightId = Number(req.query.other)
+
+  if (!Number.isFinite(leftId) || leftId <= 0) {
+    return res.status(400).json({ error: 'Invalid left game id' })
+  }
+  if (!Number.isFinite(rightId) || rightId <= 0) {
+    return res.status(400).json({ error: 'Invalid or missing `other` query param' })
+  }
+
+  const query = `
+    SELECT 
+      'left' AS side,
+      g.name,
+      gd.release_date,
+      g.price,
+      d.genres,
+      dev.name AS developer,
+      g.score,
+      (
+        (SELECT price FROM games WHERE app_id = :leftId)
+        - (SELECT price FROM games WHERE app_id = :rightId)
+      ) AS price_delta,
+      (
+        (SELECT score FROM games WHERE app_id = :leftId)
+        - (SELECT score FROM games WHERE app_id = :rightId)
+      ) AS score_delta
+    FROM games g
+    JOIN game_details   gd  ON gd.app_id  = g.app_id
+    LEFT JOIN descriptors  d   ON d.app_id   = g.app_id
+    LEFT JOIN game_developer gdv ON gdv.app_id = g.app_id
+    LEFT JOIN developers   dev ON dev.developer_id = gdv.developer_id
+    WHERE g.app_id = :leftId
+
+    UNION ALL
+
+    SELECT 
+      'right' AS side,
+      g.name,
+      gd.release_date,
+      g.price,
+      d.genres,
+      dev.name AS developer,
+      g.score,
+      (
+        (SELECT price FROM games WHERE app_id = :rightId)
+        - (SELECT price FROM games WHERE app_id = :leftId)
+      ) AS price_delta,
+      (
+        (SELECT score FROM games WHERE app_id = :rightId)
+        - (SELECT score FROM games WHERE app_id = :leftId)
+      ) AS score_delta
+    FROM games g
+    JOIN game_details   gd  ON gd.app_id  = g.app_id
+    LEFT JOIN descriptors  d   ON d.app_id   = g.app_id
+    LEFT JOIN game_developer gdv ON gdv.app_id = g.app_id
+    LEFT JOIN developers   dev ON dev.developer_id = gdv.developer_id
+    WHERE g.app_id = :rightId
+  `
+
+  try {
+    const params = { leftId, rightId }
+    const [rows] = await pool.query(query, params)
+    const results = (rows as any[]).map((r) => ({
+      side: r.side,
+      name: r.name,
+      releaseDate: r.release_date,
+      price: r.price,
+      genres: r.genres ? r.genres.split(',').map((g: string) => g.trim()) : [],
+      developer: r.developer || 'Unknown',
+      score: r.score,
+      price_delta: r.price_delta,
+      score_delta: r.score_delta,
+    }))
+
+    res.json(results)
+  } catch (error) {
+    console.error('Error running compare query', error)
+    res.status(500).json({ error: 'Failed to compare games' })
   }
 })
 

@@ -23,10 +23,11 @@ import {
   SelectItem,
   SelectTrigger,
 } from '@/components/ui/select'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Checkbox } from '@/components/ui/checkbox'
 
 export default function BrowsePage() {
+  const [searchParams] = useSearchParams()
   const [q, setQ] = useState('')
   const [offset, setOffset] = useState(0)
   const [price, setPrice] = useState<number | null>(100)
@@ -39,6 +40,16 @@ export default function BrowsePage() {
   const [appliedPrice, setAppliedPrice] = useState<number | null>(100)
   const [appliedGenres, setAppliedGenres] = useState<string[]>([])
   const [filteredGames, setFilteredGames] = useState<Game[]>([])
+
+  // Initialize from URL params
+  useEffect(() => {
+    const genresParam = searchParams.get('genres')
+    if (genresParam) {
+      const genres = genresParam.split(',').filter(g => g.trim())
+      setSelectedGenres(genres)
+      setAppliedGenres(genres)
+    }
+  }, [searchParams])
 
   const renderPriceText = (price: number | null) => {
     switch (price) {
@@ -98,18 +109,18 @@ export default function BrowsePage() {
   // Apply filters and fetch
   const handleSearchClick = () => {
     setAppliedPrice(price)
-    setAppliedGenres(selectedGenres)
+    setAppliedGenres([...selectedGenres])
     setOffset(0)
   }
 
-  // Debounced search input effect
+  // Debounced search input effect; reset when applied filters change
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchGames()
     }, 500)
 
     return () => clearTimeout(timer)
-  }, [q])
+  }, [q, appliedGenres, appliedPrice, useFulltextSearch])
 
   // Fetch when offset or limit changes
   useEffect(() => {
@@ -247,6 +258,7 @@ export default function BrowsePage() {
               options={GENRES.map((g) => ({ label: g, value: g }))}
               onValueChange={setSelectedGenres}
               defaultValue={selectedGenres}
+              resetOnDefaultValueChange={true}
             />
             <Button onClick={handleSearchClick}>Apply Filters</Button>
           </div>

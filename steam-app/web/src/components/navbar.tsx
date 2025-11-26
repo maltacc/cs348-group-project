@@ -16,8 +16,8 @@ const Navbar = () => {
 				<Link to="/browse">
 					<Button variant="ghost">Browse</Button>
 				</Link>
-				<Link to="/recommendations">
-					<Button variant="ghost">Recommendations</Button>
+				<Link to="/explore">
+					<Button variant="ghost">Explore</Button>
 				</Link>
 				<Link to="/compare">
 					<Button variant="ghost">Compare</Button>

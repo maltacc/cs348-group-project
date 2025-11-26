@@ -5,6 +5,9 @@ import BrowsePage from './components/pages/browse';
 import Navbar from './components/navbar';
 import GameDetailPage from './components/pages/gameDetail';
 import DeveloperDuosPage from './components/pages/developerDuos';
+import ExplorePage from './components/pages/explore';
+import ComparePage from './components/pages/compare';
+import ScrollToTop from './components/ScrollToTop';
 
 export default function App() {
 	const [q, setQ] = useState('');
@@ -233,12 +236,15 @@ export default function App() {
 	return (
 		<div className='min-h-screen flex flex-col'>
 			<Navbar />
+			<ScrollToTop />
 			<Routes>
 				{/* <Route path="/" element={tempHomePage} /> */}
 				<Route path='/' element={<BrowsePage />} />
 				<Route path='/browse' element={<BrowsePage />} />
+				<Route path='/explore' element={<ExplorePage />} />
 				<Route path='/games/:id' element={<GameDetailPage />} />
 				<Route path='/developer-duos' element={<DeveloperDuosPage />} />
+				<Route path='/compare' element={<ComparePage />} />
 				<Route path='*' element={<div>404 Not Found</div>} />
 			</Routes>
 		</div>
