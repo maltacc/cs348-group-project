@@ -61,6 +61,9 @@ function parseDate(dateStr?: string | null): string | null {
     console.log(`Loaded ${rows.length} rows from raw.json\n`)
     console.log('Starting ingestion into database...\n')
 
+    // Track games with their total ratings for later Elo initialization
+    const gamesWithRatings: Array<{ appId: number; totalRatings: number }> = []
+
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i]
 
@@ -78,6 +81,7 @@ function parseDate(dateStr?: string | null): string | null {
         // Compute derived values
         const positive = Number(row.Positive ?? 0)
         const negative = Number(row.Negative ?? 0)
+        const totalRatings = positive + negative
         const playerSentiment =
           positive + negative > 0 ? positive / (positive + negative) : null
 
@@ -92,6 +96,10 @@ function parseDate(dateStr?: string | null): string | null {
         if (finalScore === null) {
           skipped++
           continue
+        }
+
+        if (totalRatings > 0) {
+          gamesWithRatings.push({ appId, totalRatings })
         }
 
         const releaseDate = parseDate(row['Release date'])
@@ -228,6 +236,32 @@ function parseDate(dateStr?: string | null): string | null {
     console.log(
       `\nDone! Successfully inserted ${ok} games, rejected ${bad}, skipped ${skipped} (no score data).`
     )
+
+    console.log('\nPopulating game_elo table with top 100 most popular games...')
+    
+    // Sort games by total ratings and take top 100
+    const top100Games = gamesWithRatings
+      .sort((a, b) => b.totalRatings - a.totalRatings)
+      .slice(0, 100)
+
+    let eloInserted = 0
+    for (const game of top100Games) {
+      try {
+        await conn.query(
+          `INSERT INTO game_elo (app_id, elo, games_played)
+           VALUES (?, 1500.00, 0)
+           ON DUPLICATE KEY UPDATE
+             elo = VALUES(elo),
+             games_played = VALUES(games_played)`,
+          [game.appId]
+        )
+        eloInserted++
+      } catch (e: any) {
+        console.warn(`Error inserting game_elo for app_id ${game.appId}:`, e.message)
+      }
+    }
+
+    console.log(`Successfully initialized ${eloInserted} games in game_elo table`)
   } catch (error: any) {
     console.error(`\nError occurred:`, error.message)
     throw error

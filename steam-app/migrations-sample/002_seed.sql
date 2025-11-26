@@ -81,3 +81,11 @@ values
   (1091500, 'RPG,Action,Open World,Sci-Fi', 'Single-player', 'Cyberpunk,Open World,RPG'),
   (252490, 'Survival,Multiplayer,Open World', 'Multi-player,Online', 'Survival,Crafting,PvP'),
   (1966720, 'Horror,Co-op,Indie,Survival', 'Co-op,Multi-player', 'Horror,Co-op,Survival');
+
+-- Insert game elo ratings
+insert into game_elo (app_id, elo, games_played)
+values
+  (292030, 1520.00, 15),
+  (1245620, 1485.00, 12),
+  (413150, 1505.00, 8),
+  (730, 1495.00, 10);  

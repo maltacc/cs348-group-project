@@ -22,6 +22,9 @@ const Navbar = () => {
 				<Link to="/compare">
 					<Button variant="ghost">Compare</Button>
 				</Link>
+				<Link to="/rankings">
+					<Button variant="ghost">Rankings</Button>
+				</Link>
 				<Link to="/developer-duos">
 					<Button variant="ghost">Developer Duos</Button>
 				</Link>

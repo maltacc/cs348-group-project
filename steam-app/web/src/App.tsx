@@ -7,6 +7,7 @@ import GameDetailPage from './components/pages/gameDetail';
 import DeveloperDuosPage from './components/pages/developerDuos';
 import ExplorePage from './components/pages/explore';
 import ComparePage from './components/pages/compare';
+import RankingsPage from './components/pages/rankings';
 import ScrollToTop from './components/ScrollToTop';
 
 export default function App() {
@@ -245,6 +246,7 @@ export default function App() {
 				<Route path='/games/:id' element={<GameDetailPage />} />
 				<Route path='/developer-duos' element={<DeveloperDuosPage />} />
 				<Route path='/compare' element={<ComparePage />} />
+				<Route path='/rankings' element={<RankingsPage />} />
 				<Route path='*' element={<div>404 Not Found</div>} />
 			</Routes>
 		</div>

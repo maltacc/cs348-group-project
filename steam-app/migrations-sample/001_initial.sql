@@ -54,5 +54,25 @@ create table descriptors (
     foreign key (app_id) references games(app_id) on delete cascade
 );
 
+create table game_elo (
+  app_id        bigint primary key,
+  elo           decimal(6,2) not null default 1500.00,
+  games_played  int not null default 0,
+  foreign key (app_id) references games(app_id) on delete cascade
+);
+
+create table game_comparison (
+  comparison_id   bigint auto_increment primary key,
+  app_id_1        bigint not null,
+  app_id_2        bigint not null,
+  winner_app_id   bigint not null,
+  created_at      datetime not null default current_timestamp,
+  foreign key (app_id_1) references games(app_id) on delete cascade,
+  foreign key (app_id_2) references games(app_id) on delete cascade,
+  foreign key (winner_app_id) references games(app_id) on delete cascade,
+  check (app_id_1 <> app_id_2),
+  check (winner_app_id in (app_id_1, app_id_2))
+);
+
 create index idx_game_details_release on game_details(release_date);
 create index idx_games_price on games(price);

@@ -750,4 +750,168 @@ router.get('/:id/price-value', async (req, res) => {
   }
 })
 
+// Get Elo leaderboard - top 100 games ranked by Elo
+router.get('/rankings/leaderboard', async (req, res) => {
+  try {
+    const query = `
+      SELECT
+        ge.app_id as id,
+        g.name,
+        g.price,
+        g.score,
+        d.genres,
+        ge.elo,
+        ge.games_played,
+        ROW_NUMBER() OVER (ORDER BY ge.elo DESC, ge.games_played DESC) as rank_position
+      FROM game_elo ge
+      JOIN games g ON g.app_id = ge.app_id
+      LEFT JOIN descriptors d ON d.app_id = ge.app_id
+      ORDER BY ge.elo DESC, ge.games_played DESC
+      LIMIT 100
+    `
+
+    const [rows] = await pool.query(query)
+    const results = (rows as any[]).map((row) => ({
+      id: row.id,
+      name: row.name,
+      price: Number(row.price),
+      score: row.score,
+      genres: row.genres ? row.genres.split(',').map((g: string) => g.trim()) : [],
+      elo: Number(row.elo),
+      gamesPlayed: row.games_played,
+      rank: row.rank_position,
+    }))
+
+    res.json(results)
+  } catch (error) {
+    console.error('Error fetching Elo leaderboard:', error)
+    res.status(500).json({ error: 'Failed to fetch Elo leaderboard' })
+  }
+})
+
+// Get random game pair for ranking
+router.get('/rankings/random-pair', async (req, res) => {
+  try {
+    const query = `
+      SELECT
+        ge.app_id as id,
+        g.name,
+        g.price,
+        g.score,
+        d.genres,
+        ge.elo,
+        ge.games_played
+      FROM game_elo ge
+      JOIN games g ON g.app_id = ge.app_id
+      LEFT JOIN descriptors d ON d.app_id = ge.app_id
+      ORDER BY RAND()
+      LIMIT 2
+    `
+
+    const [rows] = await pool.query(query)
+    const results = rows as any[]
+
+    if (results.length < 2) {
+      return res.status(404).json({ error: 'Not enough games in Elo pool' })
+    }
+
+    const games = results.map((row) => ({
+      id: row.id,
+      name: row.name,
+      price: Number(row.price),
+      score: row.score,
+      genres: row.genres ? row.genres.split(',').map((g: string) => g.trim()) : [],
+      elo: Number(row.elo),
+      gamesPlayed: row.games_played,
+    }))
+
+    res.json(games)
+  } catch (error) {
+    console.error('Error fetching random game pair:', error)
+    res.status(500).json({ error: 'Failed to fetch random game pair' })
+  }
+})
+
+// Submit a game comparison (user picks winner)
+router.post('/rankings/compare', async (req, res) => {
+  const ComparisonSchema = z.object({
+    game1Id: z.number().int().positive(),
+    game2Id: z.number().int().positive(),
+    winnerId: z.number().int().positive(),
+  })
+
+  const p = ComparisonSchema.safeParse(req.body)
+  if (!p.success) return res.status(400).json({ error: p.error.flatten() })
+
+  const { game1Id, game2Id, winnerId } = p.data
+
+  if (winnerId !== game1Id && winnerId !== game2Id) {
+    return res.status(400).json({ error: 'Winner must be one of the compared games' })
+  }
+
+  if (game1Id === game2Id) {
+    return res.status(400).json({ error: 'Cannot compare a game with itself' })
+  }
+
+  try {
+    const beforeQuery = `
+      SELECT app_id, elo, games_played
+      FROM game_elo
+      WHERE app_id IN (:game1Id, :game2Id)
+    `
+    const [beforeRows] = await pool.query(beforeQuery, { game1Id, game2Id })
+    const beforeData = beforeRows as any[]
+
+    if (beforeData.length !== 2) {
+      return res.status(404).json({ error: 'One or both games not found in Elo pool' })
+    }
+
+    const game1Before = beforeData.find((g) => g.app_id === game1Id)
+    const game2Before = beforeData.find((g) => g.app_id === game2Id)
+
+    const insertQuery = `
+      INSERT INTO game_comparison (app_id_1, app_id_2, winner_app_id)
+      VALUES (:game1Id, :game2Id, :winnerId)
+    `
+    await pool.query(insertQuery, { game1Id, game2Id, winnerId })
+
+    const afterQuery = `
+      SELECT app_id, elo, games_played
+      FROM game_elo
+      WHERE app_id IN (:game1Id, :game2Id)
+    `
+    const [afterRows] = await pool.query(afterQuery, { game1Id, game2Id })
+    const afterData = afterRows as any[]
+
+    const game1After = afterData.find((g) => g.app_id === game1Id)
+    const game2After = afterData.find((g) => g.app_id === game2Id)
+
+    // Return the Elo changes
+    const result = {
+      game1: {
+        id: game1Id,
+        eloBefore: Number(game1Before.elo),
+        eloAfter: Number(game1After.elo),
+        eloChange: Number(game1After.elo) - Number(game1Before.elo),
+        gamesPlayedBefore: game1Before.games_played,
+        gamesPlayedAfter: game1After.games_played,
+      },
+      game2: {
+        id: game2Id,
+        eloBefore: Number(game2Before.elo),
+        eloAfter: Number(game2After.elo),
+        eloChange: Number(game2After.elo) - Number(game2Before.elo),
+        gamesPlayedBefore: game2Before.games_played,
+        gamesPlayedAfter: game2After.games_played,
+      },
+      winnerId,
+    }
+
+    res.json(result)
+  } catch (error) {
+    console.error('Error submitting game comparison:', error)
+    res.status(500).json({ error: 'Failed to submit comparison' })
+  }
+})
+
 export default router
