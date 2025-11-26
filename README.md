@@ -125,12 +125,14 @@ Database changed
 +------------------------+
 | descriptors            |
 | developers             |
+| game_comparison        |
 | game_details           |
 | game_developer         |
+| game_elo               |
 | game_scores            |
 | games                  |
 +------------------------+
-6 rows in set (0.001 sec)
+8 rows in set (0.002 sec)
 
 +--------------+---------------+------+-----+---------+-------+
 | Field        | Type          | Null | Key | Default | Extra |
@@ -142,9 +144,9 @@ Database changed
 | score        | int           | YES  |     | NULL    |       |
 | description  | text          | YES  |     | NULL    |       |
 +--------------+---------------+------+-----+---------+-------+
-6 rows in set (0.015 sec)
+6 rows in set (0.004 sec)
 ```
 
-Then, run `npm run dev` in both `steam-app/server` and `steam-app/web`. You should be able to open the webpage and see a basic UI.
+Then, run `npm run dev` in both `steam-app/server` and `steam-app/web`. You should be able to open the webpage and see a UI.
 
-![](https://media.discordapp.net/attachments/779019590210027560/1439005638306037824/Screenshot_2025-11-14_at_4.34.35_PM.png?ex=6918f1ef&is=6917a06f&hm=7dec610b964675e91b2e2ac74d25fe692349c1fadc5a6352de9a808aea2e2e56&=&format=webp&quality=lossless&width=1100&height=576)
+![](https://i.imgur.com/N2sSy3v.png)
