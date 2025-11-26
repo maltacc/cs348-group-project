@@ -143,10 +143,10 @@ export default function ComparePage() {
   }
 
   // Helper function to get value color for comparison
-  const getValueColor = (value: number | null, other: number | null, isLower: boolean = false) => {
+  const getValueColor = (value: number | null, other: number | null, lowerIsBetter: boolean = false) => {
     if (value === null || other === null) return '#9ca3af'
     if (value === other) return '#9ca3af'
-    const isBetter = isLower ? value < other : value > other
+    const isBetter = lowerIsBetter ? value < other : value > other
     return isBetter ? '#10b981' : '#ef4444'
   }
 
@@ -570,14 +570,14 @@ export default function ComparePage() {
                     borderRight: '1px solid #2a3138',
                     borderTop: '1px solid #2a3138',
                     textAlign: 'center',
-                    color: getValueColor(leftData?.price, rightData?.price, true),
+                    color: getValueColor(rightData?.price, leftData?.price, true),
                     fontWeight: 500,
                   }}
                 >
                   <div>${leftData?.price}</div>
                   {getPercentDifference(leftData?.price, rightData?.price) && (
-                    <div style={{ fontSize: 12, color: getValueColor(leftData?.price, rightData?.price, true), marginTop: 4 }}>
-                      ({isValueHigher(rightData?.price, leftData?.price) ? '−' : '+'}
+                    <div style={{ fontSize: 12, color: getValueColor(rightData?.price, leftData?.price, true), marginTop: 4 }}>
+                      ({isValueHigher(leftData?.price, rightData?.price) ? '−' : '+'}
                       {getPercentDifference(leftData?.price, rightData?.price)}%)
                     </div>
                   )}
@@ -587,14 +587,14 @@ export default function ComparePage() {
                     padding: 16,
                     borderTop: '1px solid #2a3138',
                     textAlign: 'center',
-                    color: getValueColor(rightData?.price, leftData?.price, true),
+                    color: getValueColor(leftData?.price, rightData?.price, true),
                     fontWeight: 500,
                   }}
                 >
                   <div>${rightData?.price}</div>
                   {getPercentDifference(rightData?.price, leftData?.price) && (
-                    <div style={{ fontSize: 12, color: getValueColor(rightData?.price, leftData?.price, true), marginTop: 4 }}>
-                      ({isValueHigher(leftData?.price, rightData?.price) ? '−' : '+'}
+                    <div style={{ fontSize: 12, color: getValueColor(leftData?.price, rightData?.price, true), marginTop: 4 }}>
+                      ({isValueHigher(rightData?.price, leftData?.price) ? '−' : '+'}
                       {getPercentDifference(rightData?.price, leftData?.price)}%)
                     </div>
                   )}
