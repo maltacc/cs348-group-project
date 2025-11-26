@@ -281,10 +281,10 @@ export default function BrowsePage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Price</TableHead>
-              <TableHead>Genres</TableHead>
-              <TableHead>Rating</TableHead>
+              <TableHead style={{ width: "40%" }}>Name</TableHead>
+              <TableHead style={{ width: "15%" }}>Price</TableHead>
+              <TableHead style={{ width: "30%" }}>Genres</TableHead>
+              <TableHead style={{ width: "15%" }}>Rating</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
