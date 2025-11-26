@@ -330,7 +330,12 @@ export default function BrowsePage() {
                         }}
                       >
                         <Star
-                          style={{ width: 14, height: 14, color: "#f59e0b" }}
+                          style={{
+                            width: 14,
+                            height: 14,
+                            color: "#f59e0b",
+                            fill: "#f59e0b",
+                          }}
                         />
                         <span>{r.score}%</span>
                       </div>
