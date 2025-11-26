@@ -5,7 +5,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { Star, Users, ArrowLeft } from 'lucide-react'
 import { useParams } from 'react-router-dom'
-import type { GameDetail, Rec } from '@/types'
+import type { GameDetail, PriceValue, Rec } from '@/types'
 import {
   Carousel,
   CarouselContent,
@@ -21,10 +21,12 @@ export default function GameDetailPage() {
   const navigate = useNavigate()
   const [game, setGame] = useState<GameDetail | null>(null)
 
-  const [sameGenreGames, setSameGenreGames] = useState<Rec[]>([])
-  const [developerGames, setDeveloperGames] = useState<Rec[]>([])
+  const [sameGenreGames, setSameGenreGames] = useState<Rec[]>([])     
+  const [developerGames, setDeveloperGames] = useState<Rec[]>([])     
   const [similarGames, setSimilarGames] = useState<Rec[]>([])
   const [recsLoading, setRecsLoading] = useState(false)
+  const [priceValue, setPriceValue] = useState<PriceValue | null>(null)
+  const [priceValueLoading, setPriceValueLoading] = useState(true)
   // const [isWishlisted, setIsWishlisted] = useState(false);
   // const recommendedGames = game ? getRecommendedGames(game, gamesData) : [];
 
@@ -48,6 +50,7 @@ export default function GameDetailPage() {
     if (!game) return
     const c = new AbortController()
     setRecsLoading(true)
+    setPriceValueLoading(true)
 
     Promise.all([
       fetch(`/api/games/${gameId}/recommendations/genre`, { signal: c.signal })
@@ -71,6 +74,16 @@ export default function GameDetailPage() {
       })
       .catch(() => {})
       .finally(() => setRecsLoading(false))
+
+    // Fetch price-value separately
+    fetch(`/api/games/${gameId}/price-value`, { signal: c.signal })
+      .then((r) => {
+        if (!r.ok) throw new Error('Not available')
+        return r.json()
+      })
+      .then((data) => setPriceValue(data))
+      .catch(() => setPriceValue(null))
+      .finally(() => setPriceValueLoading(false))
 
     return () => c.abort()
   }, [game, gameId])
@@ -339,6 +352,97 @@ export default function GameDetailPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Price-Value Analysis */}
+        <div
+          style={{
+            marginTop: 48,
+            padding: 20,
+            background: '#1a1f24',
+            border: '1px solid #2a3138',
+            borderRadius: 8,
+          }}
+        >
+          <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 12 }}>
+            Price-Value Analysis
+          </h2>
+          {priceValueLoading ? (
+            <div style={{ padding: 20, textAlign: 'center', color: '#9ca3af' }}>
+              Loading analysis...
+            </div>
+          ) : priceValue ? (
+            <>
+              <div style={{ marginBottom: 16 }}>
+                <Badge 
+                  variant={
+                    priceValue.classification === 'Overpriced' ? 'destructive' :
+                    priceValue.classification === 'Underpriced' || priceValue.classification === 'Great Value' ? 'default' :
+                    'secondary'
+                  }
+                >
+                  {priceValue.classification}
+                </Badge>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16, marginBottom: 16 }}>
+                <div>
+                  <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>
+                    Price vs Genre Average
+                  </div>
+                  <div style={{ fontSize: 16, fontWeight: 600 }}>
+                    ${priceValue.price.toFixed(2)}
+                    <span style={{ fontSize: 14, fontWeight: 400, color: '#9ca3af', marginLeft: 8 }}>
+                      (avg: ${priceValue.genreAvgPrice.toFixed(2)})
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>
+                    Score vs Genre Average
+                  </div>
+                  <div style={{ fontSize: 16, fontWeight: 600 }}>
+                    {priceValue.score}
+                    <span style={{ fontSize: 14, fontWeight: 400, color: '#9ca3af', marginLeft: 8 }}>
+                      (avg: {priceValue.genreAvgScore.toFixed(1)})
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, fontSize: 13 }}>
+                <div>
+                  <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>Price Z-Score</div>
+                  <div style={{ 
+                    fontWeight: 600, 
+                    color: priceValue.priceZScore > 1 ? '#ef4444' : priceValue.priceZScore < -1 ? '#10b981' : 'inherit' 
+                  }}>
+                    {priceValue.priceZScore.toFixed(2)}σ
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>Score Z-Score</div>
+                  <div style={{ 
+                    fontWeight: 600, 
+                    color: priceValue.scoreZScore > 1 ? '#10b981' : priceValue.scoreZScore < -1 ? '#ef4444' : 'inherit' 
+                  }}>
+                    {priceValue.scoreZScore.toFixed(2)}σ
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>Value Ratio</div>
+                  <div style={{ 
+                    fontWeight: 600, 
+                    color: priceValue.valueRatio > 1.2 ? '#10b981' : priceValue.valueRatio < 0.8 ? '#ef4444' : 'inherit' 
+                  }}>
+                    {priceValue.valueRatio.toFixed(2)}x
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div style={{ padding: 20, textAlign: 'center', color: '#9ca3af' }}>
+              Analysis unavailable
+            </div>
+          )}
         </div>
 
         {/* Recommendations Section */}

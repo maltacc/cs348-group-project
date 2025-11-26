@@ -422,4 +422,98 @@ router.get('/analytics/developer-duos', async (req, res) => {
   }
 })
 
+// Get price-value analysis for a specific game
+router.get('/:id/price-value', async (req, res) => {
+  const GameIdSchema = z.object({
+    id: z.coerce.number().int().positive(),
+  })
+
+  const p = GameIdSchema.safeParse(req.params)
+  if (!p.success) return res.status(400).json({ error: p.error.flatten() })
+
+  const gameId = p.data.id
+
+  try {
+    const query = `
+      WITH genre_stats AS (
+        SELECT
+          g.app_id,
+          g.name,
+          g.price,
+          g.score,
+          SUBSTRING_INDEX(d.genres, ',', 1) as primary_genre,
+          AVG(g.price) OVER (PARTITION BY SUBSTRING_INDEX(d.genres, ',', 1)) as genre_avg_price,
+          STDDEV_POP(g.price) OVER (PARTITION BY SUBSTRING_INDEX(d.genres, ',', 1)) as genre_stddev_price,
+          AVG(g.score) OVER (PARTITION BY SUBSTRING_INDEX(d.genres, ',', 1)) as genre_avg_score,
+          STDDEV_POP(g.score) OVER (PARTITION BY SUBSTRING_INDEX(d.genres, ',', 1)) as genre_stddev_score,
+          COUNT(*) OVER (PARTITION BY SUBSTRING_INDEX(d.genres, ',', 1)) as genre_game_count
+        FROM games g
+        LEFT JOIN descriptors d ON g.app_id = d.app_id
+        WHERE g.price > 0
+          AND g.score IS NOT NULL
+          AND d.genres IS NOT NULL
+      )
+      SELECT
+        app_id,
+        name,
+        price,
+        score,
+        primary_genre,
+        ROUND(genre_avg_price, 2) as genre_avg_price,
+        ROUND(genre_avg_score, 2) as genre_avg_score,
+        ROUND(genre_stddev_price, 2) as genre_price_stddev,
+        ROUND(genre_stddev_score, 2) as genre_score_stddev,
+        genre_game_count,
+        ROUND((price - genre_avg_price) / NULLIF(genre_stddev_price, 0), 2) as price_z_score,
+        ROUND((score - genre_avg_score) / NULLIF(genre_stddev_score, 0), 2) as score_z_score,
+        ROUND((score / NULLIF(price, 0)) / NULLIF((genre_avg_score / NULLIF(genre_avg_price, 0)), 0), 2) as value_ratio,
+        CASE
+          WHEN (price - genre_avg_price) / NULLIF(genre_stddev_price, 0) > 1
+               AND (score - genre_avg_score) / NULLIF(genre_stddev_score, 0) < -0.5
+          THEN 'Overpriced'
+          WHEN (price - genre_avg_price) / NULLIF(genre_stddev_price, 0) < -0.5
+               AND (score - genre_avg_score) / NULLIF(genre_stddev_score, 0) > 0.5
+          THEN 'Underpriced'
+          WHEN (score / NULLIF(price, 0)) / NULLIF((genre_avg_score / NULLIF(genre_avg_price, 0)), 0) > 1.5
+          THEN 'Great Value'
+          WHEN (score / NULLIF(price, 0)) / NULLIF((genre_avg_score / NULLIF(genre_avg_price, 0)), 0) < 0.7
+          THEN 'Poor Value'
+          ELSE 'Fair Value'
+        END as value_classification
+      FROM genre_stats
+      WHERE app_id = :gameId
+        AND genre_game_count >= 5
+    `
+
+    const [rows] = await pool.query(query, { gameId })
+    const results = rows as any[]
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Price-value analysis not available for this game' })
+    }
+
+    const row = results[0]
+    const result = {
+      id: row.app_id,
+      name: row.name,
+      price: Number(row.price),
+      score: row.score,
+      genre: row.primary_genre,
+      genreAvgPrice: Number(row.genre_avg_price),
+      genreAvgScore: Number(row.genre_avg_score),
+      genrePriceStddev: Number(row.genre_price_stddev),
+      genreScoreStddev: Number(row.genre_score_stddev),
+      priceZScore: Number(row.price_z_score),
+      scoreZScore: Number(row.score_z_score),
+      valueRatio: Number(row.value_ratio),
+      classification: row.value_classification,
+    }
+
+    res.json(result)
+  } catch (error) {
+    console.error('Error fetching price-value analysis:', error)
+    res.status(500).json({ error: 'Failed to fetch price-value analysis' })
+  }
+})
+
 export default router

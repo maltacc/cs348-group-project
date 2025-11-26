@@ -126,3 +126,19 @@ export type Rec = {
 	price?: number | null;
 	genres?: string | null;
 };
+
+export type PriceValue = {
+  id: string
+  name: string
+  price: number
+  score: number
+  genre: string
+  genreAvgPrice: number
+  genreAvgScore: number
+  genrePriceStddev: number
+  genreScoreStddev: number
+  priceZScore: number
+  scoreZScore: number
+  valueRatio: number
+  classification: 'Overpriced' | 'Underpriced' | 'Fair Value' | 'Great Value'
+}

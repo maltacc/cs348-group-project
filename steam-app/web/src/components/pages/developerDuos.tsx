@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
@@ -55,7 +61,9 @@ export default function DeveloperDuosPage() {
 	return (
 		<div style={{ maxWidth: 1280, margin: '0 auto', padding: 24 }}>
 			<div style={{ marginBottom: 32 }}>
-				<h1 style={{ fontSize: 36, fontWeight: 700, marginBottom: 8 }}>Developer Duo Analytics</h1>
+				<h1 style={{ fontSize: 36, fontWeight: 700, marginBottom: 8 }}>
+					Developer Duo Analytics
+				</h1>
 				<p style={{ color: 'hsl(var(--muted-foreground))' }}>
 					Explore pairs of developers who frequently collaborate on games
 				</p>
@@ -94,34 +102,87 @@ export default function DeveloperDuosPage() {
 					</p>
 				</div>
 			) : (
-				<div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(1, 1fr)', position: 'relative' }}>
+				<div
+					style={{
+						display: 'grid',
+						gap: 16,
+						gridTemplateColumns: 'repeat(1, 1fr)',
+						position: 'relative',
+					}}>
 					{loading && (
-						<div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, borderRadius: 8 }}>
+						<div
+							style={{
+								position: 'absolute',
+								top: 0,
+								left: 0,
+								right: 0,
+								bottom: 0,
+								background: 'rgba(0, 0, 0, 0.3)',
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								zIndex: 10,
+								borderRadius: 8,
+							}}>
 							<p style={{ color: '#fff', fontSize: 16 }}>Loading...</p>
 						</div>
 					)}
 					{duos.map((duo, index) => (
-						<Card key={`${duo.developer1.id}-${duo.developer2.id}`} style={{ boxShadow: 'var(--card-shadow)', transition: 'box-shadow 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 10px 15px -3px rgb(0 0 0 / 0.1)'} onMouseLeave={(e) => e.currentTarget.style.boxShadow = ''}>
+						<Card
+							key={`${duo.developer1.id}-${duo.developer2.id}`}
+							style={{
+								boxShadow: 'var(--card-shadow)',
+								transition: 'box-shadow 0.2s',
+							}}
+							onMouseEnter={(e) =>
+								(e.currentTarget.style.boxShadow =
+									'0 10px 15px -3px rgb(0 0 0 / 0.1)')
+							}
+							onMouseLeave={(e) => (e.currentTarget.style.boxShadow = '')}>
 							<CardHeader>
-								<div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+								<div
+									style={{
+										display: 'flex',
+										alignItems: 'flex-start',
+										justifyContent: 'space-between',
+									}}>
 									<div style={{ flex: 1 }}>
 										<CardTitle style={{ fontSize: 18, marginBottom: 4 }}>
 											{duo.developer1.name}
-											<span style={{ color: 'hsl(var(--muted-foreground))', marginLeft: 8, marginRight: 8 }}>×</span>
+											<span
+												style={{
+													color: 'hsl(var(--muted-foreground))',
+													marginLeft: 8,
+													marginRight: 8,
+												}}>
+												×
+											</span>
 											{duo.developer2.name}
 										</CardTitle>
-										<CardDescription>Developer Collaboration #{index + 1}</CardDescription>
+										<CardDescription>
+											Developer Collaboration #{index + 1}
+										</CardDescription>
 									</div>
 								</div>
 							</CardHeader>
 							<CardContent>
-								<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+								<div
+									style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 									<div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
 										<div style={{ display: 'flex', flexDirection: 'column' }}>
-											<span style={{ fontSize: 24, fontWeight: 700, color: 'hsl(var(--primary))' }}>
+											<span
+												style={{
+													fontSize: 24,
+													fontWeight: 700,
+													color: 'hsl(var(--primary))',
+												}}>
 												{duo.gamesCount}
 											</span>
-											<span style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))' }}>
+											<span
+												style={{
+													fontSize: 12,
+													color: 'hsl(var(--muted-foreground))',
+												}}>
 												Games Together
 											</span>
 										</div>
@@ -129,7 +190,11 @@ export default function DeveloperDuosPage() {
 											<span style={{ fontSize: 24, fontWeight: 700 }}>
 												{duo.avgScore.toFixed(1)}
 											</span>
-											<span style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))' }}>
+											<span
+												style={{
+													fontSize: 12,
+													color: 'hsl(var(--muted-foreground))',
+												}}>
 												Avg Score
 											</span>
 										</div>
@@ -137,7 +202,11 @@ export default function DeveloperDuosPage() {
 											<span style={{ fontSize: 24, fontWeight: 700 }}>
 												{duo.totalRecommendations.toLocaleString()}
 											</span>
-											<span style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))' }}>
+											<span
+												style={{
+													fontSize: 12,
+													color: 'hsl(var(--muted-foreground))',
+												}}>
 												Total Recommendations
 											</span>
 										</div>
@@ -145,12 +214,21 @@ export default function DeveloperDuosPage() {
 
 									{duo.games.length > 0 && (
 										<div>
-											<h4 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>
+											<h4
+												style={{
+													fontSize: 14,
+													fontWeight: 600,
+													marginBottom: 8,
+												}}>
 												Top Collaborative Games:
 											</h4>
-											<div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+											<div
+												style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
 												{duo.games.map((game, gameIndex) => (
-													<Badge key={gameIndex} variant="secondary" style={{ fontSize: 12 }}>
+													<Badge
+														key={gameIndex}
+														variant='secondary'
+														style={{ fontSize: 12 }}>
 														{game}
 													</Badge>
 												))}
