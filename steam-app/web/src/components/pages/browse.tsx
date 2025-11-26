@@ -167,16 +167,39 @@ export default function BrowsePage() {
             <Label style={{ fontSize: 16, opacity: 0.8 }} htmlFor="game-search">
               Search Games
             </Label>
-            <Input
-              id="game-search"
-              type="search"
-              placeholder="Search"
-              value={q}
-              onChange={(e) => {
-                setQ(e.target.value);
-                setOffset(0);
-              }}
-            />
+            <div className="flex flex-row gap-4 items-end mt-2">
+              <Input
+                id="game-search"
+                type="search"
+                placeholder="Search"
+                value={q}
+                onChange={(e) => {
+                  setQ(e.target.value);
+                  setOffset(0);
+                }}
+              />
+              <div
+                style={{
+                  marginLeft: "auto",
+                  display: "flex",
+                  alignItems: "flex-end",
+                }}
+              >
+                <Button onClick={() => setShowFilters(!showFilters)}>
+                  Filters
+                  <ChevronDown
+                    strokeWidth={2}
+                    size={16}
+                    style={{
+                      transition: "transform 0.2s",
+                      transform: showFilters
+                        ? "rotate(180deg)"
+                        : "rotate(0deg)",
+                    }}
+                  />
+                </Button>
+              </div>
+            </div>
             <div className="flex items-center gap-2">
               <Checkbox
                 id="fulltext-search"
@@ -195,26 +218,6 @@ export default function BrowsePage() {
                 descriptions)
               </Label>
             </div>
-          </div>
-
-          <div
-            style={{
-              marginLeft: "auto",
-              display: "flex",
-              alignItems: "flex-end",
-            }}
-          >
-            <Button onClick={() => setShowFilters(!showFilters)}>
-              Filters
-              <ChevronDown
-                strokeWidth={2}
-                size={16}
-                style={{
-                  transition: "transform 0.2s",
-                  transform: showFilters ? "rotate(180deg)" : "rotate(0deg)",
-                }}
-              />
-            </Button>
           </div>
         </div>
 
