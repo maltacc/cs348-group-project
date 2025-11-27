@@ -1,0 +1,15 @@
+@source_description := g.description	@source_score := g.score	@source_price := g.price	@source_primary_genre := SUBSTRING_INDEX(d.genres, ',', 1)
+Counter-Strike: Global Offensive (CS: GO) expands upon the team-based action gameplay that it pioneered when it was launched 19 years ago. CS: GO features new maps, characters, weapons, and game modes, and delivers updated versions of the classic CS content (de_dust2, etc.). 'Counter-Strike took the gaming industry by surprise when the unlikely MOD became the most played online PC action game in the world almost immediately after its release in August 1999,' said Doug Lombardi at Valve. 'For the past 12 years, it has continued to be one of the most-played games in the world, headline competitive gaming tournaments and selling over 25 million units worldwide across the franchise. CS: GO promises to expand on CS' award-winning gameplay and deliver it to gamers on the PC as well as the next gen consoles and the Mac.'	88	0.00	Action
+app_id	name	price	score	genres	primary_genre	developers
+730	Counter-Strike: Global Offensive	0.00	88	Action,Free to Play	Action	Hidden Path Entertainment, Valve
+app_id	name	price	score	genres	shared_devs	same_primary_genre	score_diff	price_diff	desc_similarity
+220	Half-Life 2	9.99	97	Action	1	1	9	9.990000000000000000000000000000	49.501953125
+550	Left 4 Dead 2	9.99	97	Action	1	1	9	9.990000000000000000000000000000	47.4334831237793
+500	Left 4 Dead	9.99	96	Action	1	1	8	9.990000000000000000000000000000	38.321685791015625
+546560	Half-Life: Alyx	59.99	98	Action,Adventure	1	1	10	59.990000000000000000000000000000	33.914485931396484
+420	Half-Life 2: Episode Two	7.99	97	Action	1	1	9	7.990000000000000000000000000000	26.93284034729004
+630	Alien Swarm	0.00	95	Action	1	1	7	0.000000000000000000000000000000	24.912029266357422
+240	Counter-Strike: Source	9.99	96	Action	1	1	8	9.990000000000000000000000000000	23.254528045654297
+659	Portal 2	9.99	99	Action,Adventure	1	1	11	9.990000000000000000000000000000	22.97154998779297
+620	Portal 2	9.99	99	Action,Adventure	1	1	11	9.990000000000000000000000000000	22.97154998779297
+100	Counter-Strike: Condition Zero	9.99	90	Action	1	1	2	9.990000000000000000000000000000	20.54132843017578
