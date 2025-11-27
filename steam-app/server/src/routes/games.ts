@@ -523,26 +523,18 @@ router.get('/analytics/developer-duos', async (req, res) => {
         d2.developer_id as developer2_id,
         dev2.name as developer2_name,
         COUNT(DISTINCT d1.app_id) as games_together,
-        ROUND(AVG(g.score), 2) as avg_score,
+        AVG(g.score) as avg_score,
         SUM(COALESCE(gs.recommendations, 0)) as total_recommendations,
         GROUP_CONCAT(DISTINCT g.name ORDER BY g.score DESC SEPARATOR '; ') as game_titles
       FROM game_developer d1 FORCE INDEX (idx_game_developer_composite)
       INNER JOIN game_developer d2 FORCE INDEX (idx_game_developer_composite)
         ON d1.app_id = d2.app_id 
         AND d1.developer_id < d2.developer_id
-      INNER JOIN developers dev1 
-        ON d1.developer_id = dev1.developer_id
-      INNER JOIN developers dev2 
-        ON d2.developer_id = dev2.developer_id
-      INNER JOIN games g 
-        ON d1.app_id = g.app_id
-      LEFT JOIN game_scores gs 
-        ON g.app_id = gs.app_id
-      GROUP BY 
-        d1.developer_id, 
-        dev1.name, 
-        d2.developer_id, 
-        dev2.name
+      INNER JOIN developers dev1 ON d1.developer_id = dev1.developer_id
+      INNER JOIN developers dev2 ON d2.developer_id = dev2.developer_id
+      INNER JOIN games g ON d1.app_id = g.app_id
+      LEFT JOIN game_scores gs ON g.app_id = gs.app_id
+      GROUP BY d1.developer_id, d2.developer_id
       HAVING games_together >= :minGames
       ORDER BY games_together DESC, avg_score DESC
       LIMIT :limit
@@ -559,7 +551,7 @@ router.get('/analytics/developer-duos', async (req, res) => {
         name: row.developer2_name,
       },
       gamesCount: row.games_together,
-      avgScore: Number(row.avg_score) || 0,
+      avgScore: Math.round((Number(row.avg_score) || 0) * 100) / 100,
       totalRecommendations: Number(row.total_recommendations) || 0,
       games: row.game_titles
         ? row.game_titles.split('; ').slice(0, 5)
@@ -658,17 +650,17 @@ router.get('/:id/compare', async (req, res) => {
 
 // Get price-value analysis for a specific game
 router.get('/:id/price-value', async (req, res) => {
-  const GameIdSchema = z.object({
-    id: z.coerce.number().int().positive(),
-  })
+	const GameIdSchema = z.object({
+		id: z.coerce.number().int().positive(),
+	});
 
-  const p = GameIdSchema.safeParse(req.params)
-  if (!p.success) return res.status(400).json({ error: p.error.flatten() })
+	const p = GameIdSchema.safeParse(req.params);
+	if (!p.success) return res.status(400).json({ error: p.error.flatten() });
 
-  const gameId = p.data.id
+	const gameId = p.data.id;
 
-  try {
-    const query = `
+	try {
+		const query = `
       WITH genre_stats AS (
         SELECT
           g.app_id,
@@ -693,62 +685,69 @@ router.get('/:id/price-value', async (req, res) => {
         price,
         score,
         primary_genre,
-        ROUND(genre_avg_price, 2) as genre_avg_price,
-        ROUND(genre_avg_score, 2) as genre_avg_score,
-        ROUND(genre_stddev_price, 2) as genre_price_stddev,
-        ROUND(genre_stddev_score, 2) as genre_score_stddev,
+        genre_avg_price,
+        genre_avg_score,
+        genre_stddev_price as genre_price_stddev,
+        genre_stddev_score as genre_score_stddev,
         genre_game_count,
-        ROUND((price - genre_avg_price) / NULLIF(genre_stddev_price, 0), 2) as price_z_score,
-        ROUND((score - genre_avg_score) / NULLIF(genre_stddev_score, 0), 2) as score_z_score,
-        ROUND((score / NULLIF(price, 0)) / NULLIF((genre_avg_score / NULLIF(genre_avg_price, 0)), 0), 2) as value_ratio,
-        CASE
-          WHEN (price - genre_avg_price) / NULLIF(genre_stddev_price, 0) > 1
-               AND (score - genre_avg_score) / NULLIF(genre_stddev_score, 0) < -0.5
-          THEN 'Overpriced'
-          WHEN (price - genre_avg_price) / NULLIF(genre_stddev_price, 0) < -0.5
-               AND (score - genre_avg_score) / NULLIF(genre_stddev_score, 0) > 0.5
-          THEN 'Underpriced'
-          WHEN (score / NULLIF(price, 0)) / NULLIF((genre_avg_score / NULLIF(genre_avg_price, 0)), 0) > 1.5
-          THEN 'Great Value'
-          WHEN (score / NULLIF(price, 0)) / NULLIF((genre_avg_score / NULLIF(genre_avg_price, 0)), 0) < 0.7
-          THEN 'Poor Value'
-          ELSE 'Fair Value'
-        END as value_classification
+        (price - genre_avg_price) / NULLIF(genre_stddev_price, 0) as price_z_score,
+        (score - genre_avg_score) / NULLIF(genre_stddev_score, 0) as score_z_score,
+        (score / NULLIF(price, 0)) / NULLIF((genre_avg_score / NULLIF(genre_avg_price, 0)), 0) as value_ratio
       FROM genre_stats
       WHERE app_id = :gameId
         AND genre_game_count >= 5
-    `
+    `;
 
-    const [rows] = await pool.query(query, { gameId })
-    const results = rows as any[]
+		const [rows] = await pool.query(query, { gameId });
+		const results = rows as any[];
 
-    if (results.length === 0) {
-      return res.status(404).json({ error: 'Price-value analysis not available for this game' })
-    }
+		if (results.length === 0) {
+			return res
+				.status(404)
+				.json({ error: 'Price-value analysis not available for this game' });
+		}
 
-    const row = results[0]
-    const result = {
-      id: row.app_id,
-      name: row.name,
-      price: Number(row.price),
-      score: row.score,
-      genre: row.primary_genre,
-      genreAvgPrice: Number(row.genre_avg_price),
-      genreAvgScore: Number(row.genre_avg_score),
-      genrePriceStddev: Number(row.genre_price_stddev),
-      genreScoreStddev: Number(row.genre_score_stddev),
-      priceZScore: Number(row.price_z_score),
-      scoreZScore: Number(row.score_z_score),
-      valueRatio: Number(row.value_ratio),
-      classification: row.value_classification,
-    }
+		const row = results[0];
+		const priceZScore = Number(row.price_z_score);
+		const scoreZScore = Number(row.score_z_score);
+		const valueRatio = Number(row.value_ratio);
 
-    res.json(result)
-  } catch (error) {
-    console.error('Error fetching price-value analysis:', error)
-    res.status(500).json({ error: 'Failed to fetch price-value analysis' })
-  }
-})
+		// Determine classification in application code
+		let classification: string;
+		if (priceZScore > 1 && scoreZScore < -0.5) {
+			classification = 'Overpriced';
+		} else if (priceZScore < -0.5 && scoreZScore > 0.5) {
+			classification = 'Underpriced';
+		} else if (valueRatio > 1.5) {
+			classification = 'Great Value';
+		} else if (valueRatio < 0.7) {
+			classification = 'Poor Value';
+		} else {
+			classification = 'Fair Value';
+		}
+
+		const result = {
+			id: row.app_id,
+			name: row.name,
+			price: Math.round(Number(row.price) * 100) / 100,
+			score: row.score,
+			genre: row.primary_genre,
+			genreAvgPrice: Math.round(Number(row.genre_avg_price) * 100) / 100,
+			genreAvgScore: Math.round(Number(row.genre_avg_score) * 100) / 100,
+			genrePriceStddev: Math.round(Number(row.genre_price_stddev) * 100) / 100,
+			genreScoreStddev: Math.round(Number(row.genre_score_stddev) * 100) / 100,
+			priceZScore: Math.round(priceZScore * 100) / 100,
+			scoreZScore: Math.round(scoreZScore * 100) / 100,
+			valueRatio: Math.round(valueRatio * 100) / 100,
+			classification,
+		};
+
+		res.json(result);
+	} catch (error) {
+		console.error('Error fetching price-value analysis:', error);
+		res.status(500).json({ error: 'Failed to fetch price-value analysis' });
+	}
+});
 
 // Get Elo leaderboard - top 100 games ranked by Elo
 router.get('/rankings/leaderboard', async (req, res) => {
