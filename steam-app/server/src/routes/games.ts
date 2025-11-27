@@ -358,8 +358,10 @@ router.get('/:id/recommendations/genre', async (req, res) => {
         d.genres
       FROM games g
       JOIN descriptors d ON g.app_id = d.app_id
+      LEFT JOIN game_scores gs ON g.app_id = gs.app_id
       WHERE g.app_id != :gameId
         AND (${conditions.join(' OR ')})
+        AND COALESCE(gs.recommendations, 0) >= 10000
       ORDER BY g.score DESC, g.name ASC
       LIMIT 10
     `
